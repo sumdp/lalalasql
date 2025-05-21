@@ -1,0 +1,842 @@
+{
+  "total_queries": 98,
+  "exact_match_rate": 6.122448979591836,
+  "high_similarity_rate": 34.69387755102041,
+  "type_performance": {
+    "counting": {
+      "total": 19,
+      "exact_matches": 2,
+      "high_similarity": 4,
+      "exact_match_rate": 10.526315789473683,
+      "high_similarity_rate": 21.052631578947366
+    },
+    "ranking": {
+      "total": 30,
+      "exact_matches": 0,
+      "high_similarity": 8,
+      "exact_match_rate": 0.0,
+      "high_similarity_rate": 26.666666666666668
+    },
+    "filtering": {
+      "total": 13,
+      "exact_matches": 1,
+      "high_similarity": 3,
+      "exact_match_rate": 7.6923076923076925,
+      "high_similarity_rate": 23.076923076923077
+    },
+    "aggregation": {
+      "total": 25,
+      "exact_matches": 2,
+      "high_similarity": 13,
+      "exact_match_rate": 8.0,
+      "high_similarity_rate": 52.0
+    },
+    "detail": {
+      "total": 7,
+      "exact_matches": 1,
+      "high_similarity": 4,
+      "exact_match_rate": 14.285714285714285,
+      "high_similarity_rate": 57.14285714285714
+    },
+    "comparison": {
+      "total": 3,
+      "exact_matches": 0,
+      "high_similarity": 1,
+      "exact_match_rate": 0.0,
+      "high_similarity_rate": 33.33333333333333
+    },
+    "history": {
+      "total": 1,
+      "exact_matches": 0,
+      "high_similarity": 1,
+      "exact_match_rate": 0.0,
+      "high_similarity_rate": 100.0
+    }
+  },
+  "detailed_results": [
+    {
+      "question": "How many teams are in the NBA?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as team_count FROM team LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as team_count FROM team",
+      "similarity_score": 0.95,
+      "exact_match": false
+    },
+    {
+      "question": "What are the 5 oldest teams in the NBA?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT full_name FROM team ORDER BY year_founded ASC LIMIT 5",
+      "generated_sql": "SELECT full_name, year_founded FROM team ORDER BY year_founded ASC LIMIT 5",
+      "similarity_score": 0.9166666666666666,
+      "exact_match": false
+    },
+    {
+      "question": "List all teams from California",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT full_name FROM team WHERE state = 'California'",
+      "generated_sql": "SELECT full_name FROM team WHERE state = 'California'",
+      "similarity_score": 1.0,
+      "exact_match": true
+    },
+    {
+      "question": "What's the total number of games played?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(DISTINCT game_id) as total_games FROM game LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as total_games FROM game",
+      "similarity_score": 0.7,
+      "exact_match": false
+    },
+    {
+      "question": "What's the highest scoring game?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT g.pts_home + g.pts_away as total_points FROM game g ORDER BY total_points DESC LIMIT 1",
+      "generated_sql": "SELECT g.game_id, g.game_date, t1.full_name AS home_team, t2.full_name AS away_team, g.pts_home, g.pts_away, (g.pts_home + g.pts_away) AS total_points FROM game g JOIN team t1 ON g.team_id_home = t1.id JOIN team t2 ON g.team_id_away = t2.id ORDER BY total_points DESC LIMIT 1",
+      "similarity_score": 0.53125,
+      "exact_match": false
+    },
+    {
+      "question": "How many players are from Duke University?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as player_count FROM draft_history WHERE organization = 'Duke University' LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as duke_players_count FROM common_player_info WHERE school = 'Duke University' LIMIT 1",
+      "similarity_score": 0.6875,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most home games?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(*) as home_games_count FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY home_games_count DESC LIMIT 1",
+      "similarity_score": 0.8905555555555557,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average points per game?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(pts_home + pts_away) / 2, 2) as avg_points FROM game LIMIT 1",
+      "generated_sql": "SELECT ROUND(AVG((pts_home + pts_away) / 2), 2) as avg_points_per_game FROM game",
+      "similarity_score": 0.825,
+      "exact_match": false
+    },
+    {
+      "question": "List all players from Spain",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT first_name, last_name FROM common_player_info WHERE country = 'Spain'",
+      "generated_sql": "SELECT DISTINCT cpi.display_first_last FROM common_player_info cpi WHERE cpi.country = 'Spain'",
+      "similarity_score": 0.6,
+      "exact_match": false
+    },
+    {
+      "question": "How many games went to overtime?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as ot_games FROM line_score WHERE pts_ot1_home IS NOT NULL LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as overtime_games \nFROM line_score \nWHERE pts_ot1_home IS NOT NULL AND pts_ot1_home > 0 \n   OR pts_ot1_away IS NOT NULL AND pts_ot1_away > 0",
+      "similarity_score": 0.788235294117647,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common jersey number?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT jersey FROM common_player_info WHERE jersey != '' GROUP BY jersey ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT jersey, COUNT(*) as count FROM common_player_info WHERE jersey != '' GROUP BY jersey ORDER BY count DESC LIMIT 1",
+      "similarity_score": 0.8866666666666666,
+      "exact_match": false
+    },
+    {
+      "question": "List all teams in the Eastern Conference",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT full_name FROM team WHERE city IN ('Boston', 'Brooklyn', 'New York', 'Philadelphia', 'Toronto', 'Chicago', 'Cleveland', 'Detroit', 'Indiana', 'Milwaukee', 'Atlanta', 'Charlotte', 'Miami', 'Orlando', 'Washington')",
+      "generated_sql": "SELECT t.full_name FROM team t JOIN team_info_common tic ON t.id = tic.team_id WHERE tic.team_conference = 'East' GROUP BY t.full_name",
+      "similarity_score": 0.4666666666666666,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average height of NBA players?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-')-1) AS FLOAT)), 2) as avg_height FROM common_player_info WHERE height != '' LIMIT 1",
+      "generated_sql": "SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-') - 1) AS FLOAT) * 12 + CAST(SUBSTR(height, INSTR(height, '-') + 1) AS FLOAT)), 2) as avg_height_inches FROM common_player_info WHERE height IS NOT NULL",
+      "similarity_score": 0.7432692307692307,
+      "exact_match": false
+    },
+    {
+      "question": "How many players were drafted in 2020?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as draft_count FROM draft_history WHERE season = '2020' LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as drafted_players_count FROM draft_history WHERE season = '2020' LIMIT 1",
+      "similarity_score": 1.0,
+      "exact_match": true
+    },
+    {
+      "question": "Which team has the newest arena?",
+      "query_type": "detail",
+      "ground_truth_sql": "SELECT t.full_name FROM team t JOIN team_details td ON t.id = td.team_id ORDER BY td.arena DESC LIMIT 1",
+      "generated_sql": "SELECT t.nickname, t.full_name, td.arena FROM team_details td JOIN team t ON td.team_id = t.id ORDER BY td.arenacapacity DESC LIMIT 1",
+      "similarity_score": 0.8933333333333334,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average weight of NBA players?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(CAST(weight AS FLOAT)), 2) as avg_weight FROM common_player_info WHERE weight != '' LIMIT 1",
+      "generated_sql": "SELECT ROUND(AVG(CAST(weight AS REAL)), 2) as avg_weight FROM common_player_info WHERE weight IS NOT NULL AND weight != ''",
+      "similarity_score": 0.778125,
+      "exact_match": false
+    },
+    {
+      "question": "List all rookie players",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT first_name, last_name FROM common_player_info WHERE season_exp = 0",
+      "generated_sql": "SELECT p.full_name FROM common_player_info cpi JOIN player p ON cpi.person_id = p.id WHERE cpi.season_exp = 0",
+      "similarity_score": 0.5222222222222223,
+      "exact_match": false
+    },
+    {
+      "question": "How many games are played on Christmas Day?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as christmas_games FROM game_info WHERE strftime('%m-%d', game_date) = '12-25' LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as christmas_games FROM game WHERE strftime('%m-%d', game_date) = '12-25'",
+      "similarity_score": 0.875,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most points scored by the home team?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT pts_home FROM game ORDER BY pts_home DESC LIMIT 1",
+      "generated_sql": "SELECT MAX(pts_home) as max_home_points FROM game LIMIT 1",
+      "similarity_score": 0.65,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the longest name?",
+      "query_type": "detail",
+      "ground_truth_sql": "SELECT full_name FROM team ORDER BY LENGTH(full_name) DESC LIMIT 1",
+      "generated_sql": "SELECT full_name FROM team ORDER BY LENGTH(full_name) DESC LIMIT 1",
+      "similarity_score": 1.0,
+      "exact_match": true
+    },
+    {
+      "question": "How many players are guards?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as guard_count FROM common_player_info WHERE position LIKE '%G%' LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as guard_count FROM common_player_info WHERE position LIKE '%Guard%' OR position = 'G'",
+      "similarity_score": 0.7928571428571428,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average game time in hours?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(CAST(SUBSTR(game_time, 1, INSTR(game_time, ':') - 1) AS INTEGER)), 2) as avg_hours FROM game_info WHERE game_time != '' LIMIT 1",
+      "generated_sql": "SELECT ROUND(AVG(CAST(SUBSTR(game_time, 1, INSTR(game_time, ':') - 1) AS REAL) + CAST(SUBSTR(game_time, INSTR(game_time, ':') + 1) AS REAL) / 60), 2) AS avg_game_time_hours FROM game_info",
+      "similarity_score": 0.5963414634146341,
+      "exact_match": false
+    },
+    {
+      "question": "List all teams that have never made the playoffs",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT t.full_name FROM team t WHERE NOT EXISTS (SELECT 1 FROM game g WHERE g.season_type = 'Playoffs' AND (g.team_id_home = t.id OR g.team_id_away = t.id))",
+      "generated_sql": "SELECT t.full_name \nFROM team t \nLEFT JOIN team_info_common tic ON t.id = tic.team_id \nWHERE tic.conf_rank IS NULL OR tic.conf_rank > 8 \nGROUP BY t.id, t.full_name \nHAVING COUNT(CASE WHEN tic.conf_rank <= 8 THEN 1 END) = 0",
+      "similarity_score": 0.4923529411764706,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common player position?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT position FROM common_player_info WHERE position IS NOT NULL GROUP BY position ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT position, COUNT(*) as position_count FROM common_player_info WHERE position IS NOT NULL GROUP BY position ORDER BY position_count DESC LIMIT 1",
+      "similarity_score": 0.8516666666666667,
+      "exact_match": false
+    },
+    {
+      "question": "List all players drafted in 2016",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT player_name FROM draft_history WHERE season = 2016 ORDER BY overall_pick",
+      "generated_sql": "SELECT dh.player_name FROM draft_history dh WHERE dh.season = '2016-17' ORDER BY dh.overall_pick",
+      "similarity_score": 0.7949999999999999,
+      "exact_match": false
+    },
+    {
+      "question": "What are the top 10 teams by total points scored?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN g.team_id_home = t.id THEN g.pts_home ELSE g.pts_away END) DESC LIMIT 10",
+      "generated_sql": "SELECT t.full_name, SUM(g.pts_home) + SUM(g.pts_away) AS total_points FROM game g JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id GROUP BY t.id, t.full_name ORDER BY total_points DESC LIMIT 10",
+      "similarity_score": 0.9102051282051283,
+      "exact_match": false
+    },
+    {
+      "question": "List all games where both teams scored over 110 points",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT g.game_id FROM game g WHERE g.pts_home > 110 AND g.pts_away > 110",
+      "generated_sql": "SELECT g.game_id, g.game_date, g.team_name_home, g.pts_home, g.team_name_away, g.pts_away FROM game g WHERE g.pts_home > 110 AND g.pts_away > 110",
+      "similarity_score": 0.9071428571428571,
+      "exact_match": false
+    },
+    {
+      "question": "How many active players are there?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as active_players FROM player WHERE is_active = 1",
+      "generated_sql": "SELECT COUNT(*) as active_player_count FROM player WHERE is_active = 1",
+      "similarity_score": 1.0,
+      "exact_match": true
+    },
+    {
+      "question": "What's the most common jersey number by position?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT cpi.position, cpi.jersey FROM common_player_info cpi WHERE cpi.jersey != '' AND cpi.position IS NOT NULL GROUP BY cpi.position, cpi.jersey ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT cpi.position, cpi.jersey, COUNT(*) as jersey_count FROM common_player_info cpi WHERE cpi.jersey != '' GROUP BY cpi.position, cpi.jersey HAVING COUNT(*) = (SELECT MAX(jersey_count) FROM (SELECT position, jersey, COUNT(*) as jersey_count FROM common_player_info WHERE jersey != '' GROUP BY position, jersey) t WHERE t.position = cpi.position) ORDER BY cpi.position",
+      "similarity_score": 0.6437499999999999,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the biggest home court advantage in terms of win percentage?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 100 ORDER BY (CAST(SUM(CASE WHEN g.team_id_home = t.id AND g.pts_home > g.pts_away THEN 1 ELSE 0 END) AS FLOAT) / COUNT(CASE WHEN g.team_id_home = t.id THEN 1 END) * 100 - CAST(SUM(CASE WHEN g.team_id_away = t.id AND g.pts_away > g.pts_home THEN 1 ELSE 0 END) AS FLOAT) / COUNT(CASE WHEN g.team_id_away = t.id THEN 1 END) * 100) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, t.nickname, \n       COUNT(CASE WHEN g.wl_home = 'W' THEN 1 END) * 100.0 / COUNT(*) AS home_win_percentage,\n       COUNT(CASE WHEN g.wl_away = 'W' THEN 1 END) * 100.0 / COUNT(*) AS away_win_percentage,\n       (COUNT(CASE WHEN g.wl_home = 'W' THEN 1 END) * 100.0 / COUNT(*)) - \n       (COUNT(CASE WHEN g.wl_away = 'W' THEN 1 END) * 100.0 / COUNT(*)) AS home_court_advantage\nFROM game g\nJOIN team t ON g.team_id_home = t.id\nGROUP BY t.id, t.full_name, t.nickname\nHAVING COUNT(*) >= 10\nORDER BY home_court_advantage DESC\nLIMIT 1;",
+      "similarity_score": 0.651984126984127,
+      "exact_match": false
+    },
+    {
+      "question": "Which season type has the highest average attendance?",
+      "query_type": "comparison",
+      "ground_truth_sql": "SELECT g.season_type, ROUND(AVG(gi.attendance), 0) as avg_attendance FROM game g JOIN game_info gi ON g.game_id = gi.game_id WHERE gi.attendance > 0 GROUP BY g.season_type ORDER BY avg_attendance DESC LIMIT 1",
+      "generated_sql": "SELECT g.season_type, ROUND(AVG(gi.attendance), 2) as avg_attendance FROM game g JOIN game_info gi ON g.game_id = gi.game_id GROUP BY g.season_type ORDER BY avg_attendance DESC LIMIT 1",
+      "similarity_score": 0.8666666666666667,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has had the most different home arenas?",
+      "query_type": "history",
+      "ground_truth_sql": "SELECT t.full_name FROM team t JOIN team_details td ON t.id = td.team_id GROUP BY t.id, t.full_name ORDER BY COUNT(DISTINCT td.arena) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(DISTINCT td.arena) AS arena_count \nFROM team t \nJOIN team_details td ON t.id = td.team_id \nGROUP BY t.id, t.full_name \nORDER BY arena_count DESC \nLIMIT 1",
+      "similarity_score": 0.9294444444444445,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common first name among NBA players?",
+      "query_type": "detail",
+      "ground_truth_sql": "SELECT first_name FROM player GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT first_name, COUNT(*) as name_count FROM player GROUP BY first_name ORDER BY name_count DESC LIMIT 1",
+      "similarity_score": 0.8516666666666667,
+      "exact_match": false
+    },
+    {
+      "question": "Which conference produces the most drafted players?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT CASE WHEN dh.organization LIKE '%ACC%' THEN 'ACC' WHEN dh.organization LIKE '%SEC%' THEN 'SEC' WHEN dh.organization LIKE '%Big Ten%' THEN 'Big Ten' ELSE 'Other' END as conference FROM draft_history dh WHERE dh.organization_type = 'College/University' GROUP BY conference ORDER BY COUNT(DISTINCT dh.person_id) DESC LIMIT 1",
+      "generated_sql": "SELECT dh.organization AS conference, COUNT(DISTINCT dh.person_id) AS drafted_players_count FROM draft_history dh WHERE dh.organization_type = 'College/University' GROUP BY dh.organization ORDER BY drafted_players_count DESC LIMIT 1",
+      "similarity_score": 0.5850000000000001,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest percentage of international players?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM common_player_info cpi JOIN team t ON cpi.team_id = t.id GROUP BY cpi.team_id, t.full_name HAVING COUNT(*) >= 10 ORDER BY CAST(SUM(CASE WHEN cpi.country != 'USA' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, t.nickname, \n       COUNT(CASE WHEN cpi.country != 'USA' THEN 1 END) AS intl_players,\n       COUNT(cpi.person_id) AS total_players,\n       ROUND(CAST(COUNT(CASE WHEN cpi.country != 'USA' THEN 1 END) AS FLOAT) / COUNT(cpi.person_id) * 100, 2) AS intl_percentage\nFROM team t\nJOIN common_player_info cpi ON t.id = cpi.team_id\nGROUP BY t.id, t.full_name, t.nickname\nORDER BY intl_percentage DESC\nLIMIT 1",
+      "similarity_score": 0.6194444444444445,
+      "exact_match": false
+    },
+    {
+      "question": "Which school has the best average draft position?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT dh.organization FROM draft_history dh WHERE dh.organization_type = 'College/University' GROUP BY dh.organization HAVING COUNT(*) >= 5 ORDER BY AVG(dh.overall_pick) ASC LIMIT 1",
+      "generated_sql": "SELECT cpi.school, ROUND(AVG(dh.overall_pick), 2) AS avg_draft_position, COUNT(*) AS players_drafted FROM draft_history dh JOIN common_player_info cpi ON dh.person_id = cpi.person_id WHERE cpi.school IS NOT NULL AND cpi.school != '' GROUP BY cpi.school HAVING COUNT(*) >= 5 ORDER BY avg_draft_position ASC LIMIT 10",
+      "similarity_score": 0.05555555555555555,
+      "exact_match": false
+    },
+    {
+      "question": "List all teams that have never changed their team name",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT t.full_name FROM team t LEFT JOIN team_history th ON t.id = th.team_id WHERE th.team_id IS NULL",
+      "generated_sql": "SELECT t.id, t.full_name, t.nickname \nFROM team t \nWHERE t.id NOT IN (\n    SELECT th.team_id \n    FROM team_history th \n    GROUP BY th.team_id \n    HAVING COUNT(DISTINCT th.nickname) > 1\n)",
+      "similarity_score": 0.38499999999999995,
+      "exact_match": false
+    },
+    {
+      "question": "Who is the referee that has officiated the most games?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT o.first_name || ' ' || o.last_name as name FROM officials o GROUP BY o.official_id, o.first_name, o.last_name ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT o.first_name, o.last_name, COUNT(*) as games_officiated FROM officials o GROUP BY o.official_id, o.first_name, o.last_name ORDER BY games_officiated DESC LIMIT 1",
+      "similarity_score": 0.685,
+      "exact_match": false
+    },
+    {
+      "question": "List all games with more than 15 lead changes",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT g.game_id FROM game g JOIN other_stats os ON g.game_id = os.game_id WHERE os.lead_changes > 15",
+      "generated_sql": "SELECT g.game_id, g.game_date, g.team_name_home, g.team_name_away, o.lead_changes FROM game g JOIN other_stats o ON g.game_id = o.game_id WHERE o.lead_changes > 15 ORDER BY o.lead_changes DESC",
+      "similarity_score": 0.6722222222222223,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest win percentage?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away GROUP BY t.id, t.full_name HAVING COUNT(*) >= 100 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, t.nickname, tic.pct as win_percentage FROM team_info_common tic JOIN team t ON tic.team_id = t.id ORDER BY tic.pct DESC LIMIT 1",
+      "similarity_score": 0.6195804195804197,
+      "exact_match": false
+    },
+    {
+      "question": "List all games where both teams scored over 120 points",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT g.game_id FROM game g WHERE g.pts_home > 120 AND g.pts_away > 120",
+      "generated_sql": "SELECT g.game_id, g.game_date, g.team_name_home, g.pts_home, g.team_name_away, g.pts_away FROM game g WHERE g.pts_home > 120 AND g.pts_away > 120",
+      "similarity_score": 0.9071428571428571,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average attendance for Lakers home games?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT AVG(gi.attendance) as avg_attendance FROM game g JOIN team t ON g.team_id_home = t.id JOIN game_info gi ON g.game_id = gi.game_id WHERE t.nickname = 'Lakers'",
+      "generated_sql": "SELECT ROUND(AVG(gi.attendance), 2) as avg_attendance FROM game_info gi JOIN game g ON gi.game_id = g.game_id WHERE g.team_name_home = 'Lakers'",
+      "similarity_score": 0.6057291666666667,
+      "exact_match": false
+    },
+    {
+      "question": "List all players from Serbia",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT first_name, last_name FROM common_player_info WHERE country = 'Serbia'",
+      "generated_sql": "SELECT DISTINCT cpi.display_first_last FROM common_player_info cpi WHERE cpi.country = 'Serbia'",
+      "similarity_score": 0.6,
+      "exact_match": false
+    },
+    {
+      "question": "How many games were played in 2019?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(DISTINCT game_id) as games_played FROM game_info WHERE strftime('%Y', game_date) = '2019'",
+      "generated_sql": "SELECT COUNT(*) as games_count FROM game WHERE strftime('%Y', game_date) = '2019'",
+      "similarity_score": 0.675,
+      "exact_match": false
+    },
+    {
+      "question": "What is the arena capacity for the Warriors?",
+      "query_type": "detail",
+      "ground_truth_sql": "SELECT td.arenacapacity FROM team t JOIN team_details td ON t.id = td.team_id WHERE t.nickname = 'Warriors'",
+      "generated_sql": "SELECT arenacapacity FROM team_details WHERE nickname = 'Warriors' LIMIT 1",
+      "similarity_score": 0.7138888888888888,
+      "exact_match": false
+    },
+    {
+      "question": "Who is the player that was inactive the most times for the Celtics?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ip.first_name || ' ' || ip.last_name as player_name FROM inactive_players ip JOIN team t ON ip.team_id = t.id WHERE t.nickname = 'Celtics' GROUP BY ip.player_id, ip.first_name, ip.last_name ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT ip.first_name, ip.last_name, COUNT(*) as inactive_count FROM inactive_players ip WHERE ip.team_name = 'Celtics' GROUP BY ip.player_id, ip.first_name, ip.last_name ORDER BY inactive_count DESC LIMIT 1",
+      "similarity_score": 0.40722222222222215,
+      "exact_match": false
+    },
+    {
+      "question": "How many points did the Warriors score in the paint in their home games?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT SUM(os.pts_paint_home) as total_paint_points FROM game g JOIN team t ON g.team_id_home = t.id JOIN other_stats os ON g.game_id = os.game_id WHERE t.nickname = 'Warriors'",
+      "generated_sql": "SELECT SUM(os.pts_paint_home) as total_paint_points FROM other_stats os JOIN game g ON os.game_id = g.game_id WHERE g.team_name_home = 'Warriors'",
+      "similarity_score": 0.8338541666666667,
+      "exact_match": false
+    },
+    {
+      "question": "List all games that went to overtime",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT g.game_id FROM game g JOIN line_score ls ON g.game_id = ls.game_id WHERE ls.pts_ot1_home IS NOT NULL",
+      "generated_sql": "SELECT g.game_id, g.game_date, g.team_name_home, g.team_name_away, g.pts_home, g.pts_away FROM game g JOIN line_score ls ON g.game_id = ls.game_id WHERE ls.pts_ot1_home IS NOT NULL AND ls.pts_ot1_home > 0",
+      "similarity_score": 0.7898313492063491,
+      "exact_match": false
+    },
+    {
+      "question": "Which team had the most nationally televised games?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT t.full_name FROM game_summary gs JOIN team t ON gs.home_team_id = t.id OR gs.visitor_team_id = t.id WHERE gs.natl_tv_broadcaster_abbreviation IS NOT NULL GROUP BY t.id, t.full_name ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(*) as national_tv_games FROM game_summary gs JOIN team t ON gs.home_team_id = t.id OR gs.visitor_team_id = t.id WHERE gs.natl_tv_broadcaster_abbreviation IS NOT NULL AND gs.natl_tv_broadcaster_abbreviation != '' GROUP BY t.id, t.full_name ORDER BY national_tv_games DESC LIMIT 1",
+      "similarity_score": 0.8422916666666667,
+      "exact_match": false
+    },
+    {
+      "question": "Which team scored the most fast break points?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away JOIN other_stats os ON g.game_id = os.game_id GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN g.team_id_home = t.id THEN os.pts_fb_home ELSE os.pts_fb_away END) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, MAX(GREATEST(o.pts_fb_home, o.pts_fb_away)) as max_fast_break_points FROM other_stats o JOIN team t ON o.team_id_home = t.id OR o.team_id_away = t.id GROUP BY t.full_name ORDER BY max_fast_break_points DESC LIMIT 1",
+      "similarity_score": 0.7070000000000001,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the best record in close games (margin \u2264 5 points)?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) WHERE ABS(g.pts_home - g.pts_away) <= 5 GROUP BY t.id, t.full_name HAVING COUNT(*) >= 100 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1",
+      "generated_sql": "WITH close_games AS (\n  SELECT \n    team_id_home AS team_id, \n    CASE WHEN wl_home = 'W' THEN 1 ELSE 0 END AS win\n  FROM game \n  WHERE ABS(pts_home - pts_away) <= 5\n  UNION ALL\n  SELECT \n    team_id_away AS team_id, \n    CASE WHEN wl_away = 'W' THEN 1 ELSE 0 END AS win\n  FROM game \n  WHERE ABS(pts_home - pts_away) <= 5\n)\nSELECT \n  t.full_name, \n  COUNT(*) AS total_close_games,\n  SUM(cg.win) AS wins,\n  ROUND(CAST(SUM(cg.win) AS FLOAT) / COUNT(*) * 100, 2) AS win_percentage\nFROM close_games cg\nJOIN team t ON cg.team_id = t.id\nGROUP BY cg.team_id, t.full_name\nHAVING COUNT(*) >= 10\nORDER BY win_percentage DESC\nLIMIT 1",
+      "similarity_score": 0.10518939393939394,
+      "exact_match": false
+    },
+    {
+      "question": "Who is the player with the longest name?",
+      "query_type": "filtering",
+      "ground_truth_sql": "SELECT first_name || ' ' || last_name as full_name FROM common_player_info ORDER BY LENGTH(first_name || ' ' || last_name) DESC LIMIT 1",
+      "generated_sql": "SELECT full_name FROM player ORDER BY LENGTH(full_name) DESC LIMIT 1",
+      "similarity_score": 0.5750000000000001,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average margin of victory in playoff games?",
+      "query_type": "comparison",
+      "ground_truth_sql": "SELECT ROUND(AVG(ABS(g.pts_home - g.pts_away)), 2) as avg_margin FROM game g WHERE g.season_type = 'Playoffs'",
+      "generated_sql": "SELECT ROUND(AVG(ABS(pts_home - pts_away)), 2) AS avg_margin_of_victory FROM game WHERE season_type = 'Playoffs'",
+      "similarity_score": 0.6,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most different players on their all-time roster?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT t.full_name FROM team t JOIN common_player_info cpi ON t.id = cpi.team_id GROUP BY t.id, t.full_name ORDER BY COUNT(DISTINCT cpi.person_id) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(DISTINCT cpi.person_id) as player_count \nFROM common_player_info cpi \nJOIN team t ON cpi.team_id = t.id \nGROUP BY t.id, t.full_name \nORDER BY player_count DESC \nLIMIT 1",
+      "similarity_score": 0.8461111111111111,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common final score?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT g.pts_home || '-' || g.pts_away as score FROM game g GROUP BY g.pts_home, g.pts_away ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT pts_home, pts_away, COUNT(*) as frequency FROM game GROUP BY pts_home, pts_away ORDER BY frequency DESC LIMIT 1",
+      "similarity_score": 0.45999999999999996,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the best record on Christmas Day?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) JOIN game_info gi ON g.game_id = gi.game_id WHERE strftime('%m-%d', gi.game_date) = '12-25' GROUP BY t.id, t.full_name HAVING COUNT(*) >= 5 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, \n       COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'W') OR (g.team_id_away = t.id AND g.wl_away = 'W') THEN 1 END) AS wins,\n       COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'L') OR (g.team_id_away = t.id AND g.wl_away = 'L') THEN 1 END) AS losses,\n       ROUND(COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'W') OR (g.team_id_away = t.id AND g.wl_away = 'W') THEN 1 END) * 100.0 / \n             (COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'W') OR (g.team_id_away = t.id AND g.wl_away = 'W') THEN 1 END) + \n              COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'L') OR (g.team_id_away = t.id AND g.wl_away = 'L') THEN 1 END)), 2) AS win_percentage,\n       COUNT(*) AS total_games\nFROM game g\nJOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id\nWHERE strftime('%m-%d', g.game_date) = '12-25'\nGROUP BY t.id, t.full_name\nHAVING total_games > 0\nORDER BY win_percentage DESC, total_games DESC\nLIMIT 1;",
+      "similarity_score": 0.5767142857142856,
+      "exact_match": false
+    },
+    {
+      "question": "What's the win percentage difference between teams with 3+ rest days vs fewer rest days?",
+      "query_type": "comparison",
+      "ground_truth_sql": "WITH rest_days AS (SELECT g.game_id, t.id, t.full_name, JULIANDAY(g.game_date) - JULIANDAY(LAG(g.game_date) OVER (PARTITION BY t.id ORDER BY g.game_date)) as days_rest, CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END as won FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away)) SELECT ROUND(AVG(CASE WHEN days_rest >= 3 THEN won END) * 100, 2) - ROUND(AVG(CASE WHEN days_rest < 3 THEN won END) * 100, 2) as win_pct_diff FROM rest_days WHERE days_rest IS NOT NULL",
+      "generated_sql": "WITH game_with_rest AS (\n  SELECT \n    g1.game_id,\n    g1.team_id_home,\n    g1.team_id_away,\n    g1.wl_home,\n    g1.wl_away,\n    JULIANDAY(g1.game_date) - JULIANDAY(MAX(g2.game_date)) AS home_rest_days,\n    JULIANDAY(g1.game_date) - JULIANDAY(MAX(g3.game_date)) AS away_rest_days\n  FROM game g1\n  LEFT JOIN game g2 ON (g1.team_id_home = g2.team_id_home OR g1.team_id_home = g2.team_id_away)\n    AND g2.game_date < g1.game_date\n  LEFT JOIN game g3 ON (g1.team_id_away = g3.team_id_home OR g1.team_id_away = g3.team_id_away)\n    AND g3.game_date < g1.game_date\n  GROUP BY g1.game_id, g1.team_id_home, g1.team_id_away\n),\nwin_stats AS (\n  SELECT\n    ROUND(SUM(CASE WHEN home_rest_days >= 3 AND wl_home = 'W' THEN 1 ELSE 0 END) * 100.0 / \n      NULLIF(SUM(CASE WHEN home_rest_days >= 3 THEN 1 ELSE 0 END), 0), 2) AS home_win_pct_more_rest,\n    ROUND(SUM(CASE WHEN home_rest_days < 3 AND wl_home = 'W' THEN 1 ELSE 0 END) * 100.0 / \n      NULLIF(SUM(CASE WHEN home_rest_days < 3 THEN 1 ELSE 0 END), 0), 2) AS home_win_pct_less_rest,\n    ROUND(SUM(CASE WHEN away_rest_days >= 3 AND wl_away = 'W' THEN 1 ELSE 0 END) * 100.0 / \n      NULLIF(SUM(CASE WHEN away_rest_days >= 3 THEN 1 ELSE 0 END), 0), 2) AS away_win_pct_more_rest,\n    ROUND(SUM(CASE WHEN away_rest_days < 3 AND wl_away = 'W' THEN 1 ELSE 0 END) * 100.0 / \n      NULLIF(SUM(CASE WHEN away_rest_days < 3 THEN 1 ELSE 0 END), 0), 2) AS away_win_pct_less_rest\n  FROM game_with_rest\n)\nSELECT \n  ROUND(((home_win_pct_more_rest + away_win_pct_more_rest) / 2) - \n        ((home_win_pct_less_rest + away_win_pct_less_rest) / 2), 2) AS win_pct_difference\nFROM win_stats",
+      "similarity_score": 0.19916666666666666,
+      "exact_match": false
+    },
+    {
+      "question": "How many players have played for both the Lakers and Celtics?",
+      "query_type": "counting",
+      "ground_truth_sql": "WITH team_players AS (SELECT DISTINCT cpi.person_id FROM common_player_info cpi JOIN team t ON cpi.team_id = t.id WHERE t.nickname IN ('Lakers', 'Celtics')) SELECT COUNT(*) as players_count FROM (SELECT person_id FROM team_players GROUP BY person_id HAVING COUNT(*) = 2) x LIMIT 1",
+      "generated_sql": "WITH lakers_players AS (SELECT DISTINCT person_id FROM common_player_info WHERE team_name = 'Lakers'), celtics_players AS (SELECT DISTINCT person_id FROM common_player_info WHERE team_name = 'Celtics') SELECT COUNT(*) as players_count FROM lakers_players lp JOIN celtics_players cp ON lp.person_id = cp.person_id",
+      "similarity_score": 0.4434027777777778,
+      "exact_match": false
+    },
+    {
+      "question": "How many games have gone to multiple overtimes?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) as multi_ot_games FROM game g JOIN line_score l ON g.game_id = l.game_id WHERE l.pts_ot2_home IS NOT NULL LIMIT 1",
+      "generated_sql": "SELECT COUNT(*) as multiple_overtime_games \nFROM line_score \nWHERE (pts_ot2_home IS NOT NULL AND pts_ot2_home != 0) \n   OR (pts_ot2_away IS NOT NULL AND pts_ot2_away != 0)",
+      "similarity_score": 0.5561111111111111,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average game attendance?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(attendance), 0) as avg_attendance FROM game_info WHERE attendance > 0 LIMIT 1",
+      "generated_sql": "SELECT ROUND(AVG(attendance), 2) as avg_attendance FROM game_info",
+      "similarity_score": 0.7,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest percentage of games with 100+ points scored?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home >= 100) OR (g.team_id_away = t.id AND g.pts_away >= 100) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, t.nickname, ROUND(COUNT(CASE WHEN (g.team_id_home = t.id AND g.pts_home >= 100) OR (g.team_id_away = t.id AND g.pts_away >= 100) THEN 1 END) * 100.0 / COUNT(*), 2) AS pct_games_100_plus FROM game g JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id GROUP BY t.id, t.full_name, t.nickname ORDER BY pct_games_100_plus DESC LIMIT 1",
+      "similarity_score": 0.679965034965035,
+      "exact_match": false
+    },
+    {
+      "question": "What's the largest point deficit in any game?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT MAX(ABS(pts_home - pts_away)) as max_deficit FROM game",
+      "generated_sql": "SELECT MAX(ABS(pts_home - pts_away)) as largest_deficit FROM game LIMIT 1",
+      "similarity_score": 0.95,
+      "exact_match": false
+    },
+    {
+      "question": "What percentage of games are won by the home team?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(CAST(SUM(CASE WHEN pts_home > pts_away THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as home_win_pct FROM game",
+      "generated_sql": "SELECT ROUND(CAST(SUM(CASE WHEN wl_home = 'W' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as home_win_pct FROM game",
+      "similarity_score": 1.0,
+      "exact_match": true
+    },
+    {
+      "question": "Which team has the highest free throw percentage?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING SUM(CASE WHEN g.team_id_home = t.id THEN g.fta_home ELSE g.fta_away END) >= 100 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.ftm_home ELSE g.ftm_away END) AS FLOAT) / SUM(CASE WHEN g.team_id_home = t.id THEN g.fta_home ELSE g.fta_away END) * 100 DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, ROUND(SUM(g.ftm_home + g.ftm_away) * 100.0 / NULLIF(SUM(g.fta_home + g.fta_away), 0), 2) AS ft_pct \nFROM game g \nJOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away \nGROUP BY t.id, t.full_name \nORDER BY ft_pct DESC \nLIMIT 1",
+      "similarity_score": 0.7156354515050167,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average number of fouls per game?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(pf_home + pf_away), 2) as avg_fouls FROM game",
+      "generated_sql": "SELECT ROUND(AVG(pf_home + pf_away), 2) as avg_fouls_per_game FROM game",
+      "similarity_score": 0.875,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest 3-point shooting percentage?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING SUM(CASE WHEN g.team_id_home = t.id THEN g.fg3a_home ELSE g.fg3a_away END) >= 100 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.fg3m_home ELSE g.fg3m_away END) AS FLOAT) / SUM(CASE WHEN g.team_id_home = t.id THEN g.fg3a_home ELSE g.fg3a_away END) * 100 DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, t.nickname, ROUND(AVG(CASE WHEN g.team_id_home = t.id THEN g.fg3_pct_home ELSE g.fg3_pct_away END) * 100, 2) AS avg_3pt_pct FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away GROUP BY t.id, t.full_name, t.nickname ORDER BY avg_3pt_pct DESC LIMIT 1",
+      "similarity_score": 0.6856354515050167,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average number of rebounds per game?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(reb_home + reb_away), 2) as avg_rebounds FROM game",
+      "generated_sql": "SELECT ROUND(AVG(reb_home + reb_away), 2) as avg_rebounds_per_game FROM game",
+      "similarity_score": 0.875,
+      "exact_match": false
+    },
+    {
+      "question": "How many games were decided by a single possession (3 points or less)?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) FROM game WHERE ABS(pts_home - pts_away) <= 3",
+      "generated_sql": "SELECT COUNT(*) as single_possession_games FROM game WHERE ABS(pts_home - pts_away) <= 3",
+      "similarity_score": 0.75,
+      "exact_match": false
+    },
+    {
+      "question": "How many players were drafted in the first round in 2019?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) FROM draft_history WHERE season = '2019' AND round_number = 1",
+      "generated_sql": "SELECT COUNT(*) as first_round_picks FROM draft_history WHERE season = '2019' AND round_number = 1 LIMIT 1",
+      "similarity_score": 0.7428571428571428,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest average attendance?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON g.team_id_home = t.id JOIN game_info gi ON g.game_id = gi.game_id WHERE gi.attendance > 0 GROUP BY t.id, t.full_name ORDER BY AVG(gi.attendance) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, ROUND(AVG(gi.attendance), 2) as avg_attendance FROM game_info gi JOIN game g ON gi.game_id = g.game_id JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY avg_attendance DESC LIMIT 1",
+      "similarity_score": 0.6225,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common final score in overtime games?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT g.pts_home || '-' || g.pts_away as score FROM game g JOIN line_score l ON g.game_id = l.game_id WHERE l.pts_ot1_home IS NOT NULL GROUP BY g.pts_home, g.pts_away ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT pts_home || '-' || pts_away AS final_score, COUNT(*) AS frequency FROM line_score WHERE (pts_ot1_home > 0 OR pts_ot1_away > 0) GROUP BY final_score ORDER BY frequency DESC LIMIT 1",
+      "similarity_score": 0.27111111111111114,
+      "exact_match": false
+    },
+    {
+      "question": "How many players are from Kentucky?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) FROM draft_history WHERE organization = 'Kentucky'",
+      "generated_sql": "SELECT COUNT(*) as kentucky_players FROM common_player_info WHERE school = 'Kentucky' LIMIT 1",
+      "similarity_score": 0.3666666666666667,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most assists per game?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.ast_home ELSE g.ast_away END) AS FLOAT) / COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, ROUND(AVG(CASE WHEN g.team_id_home = t.id THEN g.ast_home ELSE g.ast_away END), 2) AS avg_assists_per_game FROM game g JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id GROUP BY t.id, t.full_name ORDER BY avg_assists_per_game DESC LIMIT 1",
+      "similarity_score": 0.738525641025641,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average height of centers?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-')-1) AS FLOAT)), 2) as avg_height FROM common_player_info WHERE position LIKE '%C%' AND height != ''",
+      "generated_sql": "SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-') - 1) AS FLOAT) * 12 + CAST(SUBSTR(height, INSTR(height, '-') + 1) AS FLOAT)), 2) as avg_height_inches FROM common_player_info WHERE position LIKE '%Center%' OR position = 'C'",
+      "similarity_score": 0.8236263736263736,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most playoff appearances?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) WHERE g.season_type = 'Playoffs' GROUP BY t.id, t.full_name ORDER BY COUNT(DISTINCT SUBSTR(g.season_id, 1, 4)) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(DISTINCT g.season_id) AS playoff_appearances \nFROM game g \nJOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id \nWHERE g.season_type = 'Playoffs' \nGROUP BY t.id, t.full_name \nORDER BY playoff_appearances DESC \nLIMIT 1",
+      "similarity_score": 0.8093589743589744,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common player height?",
+      "query_type": "detail",
+      "ground_truth_sql": "SELECT height FROM common_player_info WHERE height != '' GROUP BY height ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT height, COUNT(*) as count FROM common_player_info WHERE height IS NOT NULL GROUP BY height ORDER BY count DESC LIMIT 1",
+      "similarity_score": 0.6991666666666666,
+      "exact_match": false
+    },
+    {
+      "question": "How many games were played on New Year's Day?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) FROM game_info WHERE strftime('%m-%d', game_date) = '01-01'",
+      "generated_sql": "SELECT COUNT(*) as games_count FROM game WHERE strftime('%m-%d', game_date) = '01-01'",
+      "similarity_score": 0.675,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest percentage of games with 10+ steals?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.stl_home >= 10) OR (g.team_id_away = t.id AND g.stl_away >= 10) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1",
+      "generated_sql": "WITH team_games AS (\n  SELECT team_id_home AS team_id, COUNT(*) AS total_games, SUM(CASE WHEN stl_home >= 10 THEN 1 ELSE 0 END) AS games_with_10_steals\n  FROM game\n  GROUP BY team_id_home\n  UNION ALL\n  SELECT team_id_away AS team_id, COUNT(*) AS total_games, SUM(CASE WHEN stl_away >= 10 THEN 1 ELSE 0 END) AS games_with_10_steals\n  FROM game\n  GROUP BY team_id_away\n), team_stats AS (\n  SELECT team_id, SUM(total_games) AS total_games, SUM(games_with_10_steals) AS games_with_10_steals\n  FROM team_games\n  GROUP BY team_id\n)\nSELECT t.full_name, ROUND(CAST(ts.games_with_10_steals AS FLOAT) / ts.total_games * 100, 2) AS steal_percentage\nFROM team_stats ts\nJOIN team t ON ts.team_id = t.id\nORDER BY steal_percentage DESC\nLIMIT 1",
+      "similarity_score": 0.3349512987012987,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average number of blocks per game?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(blk_home + blk_away), 2) as avg_blocks FROM game",
+      "generated_sql": "SELECT ROUND(AVG(blk_home + blk_away), 2) as avg_blocks_per_game FROM game",
+      "similarity_score": 0.875,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most games with 20+ assists?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.ast_home >= 20) OR (g.team_id_away = t.id AND g.ast_away >= 20) THEN 1 ELSE 0 END) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_home = t.id WHERE g.ast_home >= 20 GROUP BY t.id, t.full_name UNION ALL SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_away = t.id WHERE g.ast_away >= 20 GROUP BY t.id, t.full_name ORDER BY high_assist_games DESC LIMIT 1",
+      "similarity_score": 0.4773429951690821,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the lowest turnover rate?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.tov_home ELSE g.tov_away END) AS FLOAT) / COUNT(*) ASC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, t.nickname, \n       ROUND(AVG(CASE WHEN g.team_id_home = t.id THEN g.tov_home ELSE g.tov_away END), 2) AS avg_turnovers\nFROM game g\nJOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away\nGROUP BY t.id, t.full_name, t.nickname\nORDER BY avg_turnovers ASC\nLIMIT 1",
+      "similarity_score": 0.6834615384615385,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average weight of power forwards?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(CAST(weight AS FLOAT)), 2) as avg_weight FROM common_player_info WHERE position LIKE '%F%' AND weight != ''",
+      "generated_sql": "SELECT ROUND(AVG(CAST(weight AS FLOAT)), 2) as avg_weight FROM common_player_info WHERE position = 'Forward' OR position = 'Forward-Center' OR position = 'Forward-Guard' OR position LIKE '%Power Forward%'",
+      "similarity_score": 0.7984375,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most games with 15+ three-pointers made?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.fg3m_home >= 15) OR (g.team_id_away = t.id AND g.fg3m_away >= 15) THEN 1 ELSE 0 END) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(*) as games_with_15plus_3pm \nFROM (\n    SELECT team_id_home as team_id FROM game WHERE fg3m_home >= 15\n    UNION ALL\n    SELECT team_id_away as team_id FROM game WHERE fg3m_away >= 15\n) g\nJOIN team t ON g.team_id = t.id\nGROUP BY t.id, t.full_name\nORDER BY games_with_15plus_3pm DESC\nLIMIT 1",
+      "similarity_score": 0.4236805555555555,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common margin of victory?",
+      "query_type": "detail",
+      "ground_truth_sql": "SELECT ABS(pts_home - pts_away) as margin FROM game GROUP BY margin ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT ABS(pts_home - pts_away) as margin_of_victory, COUNT(*) as frequency FROM game GROUP BY margin_of_victory ORDER BY frequency DESC LIMIT 1",
+      "similarity_score": 0.8216666666666667,
+      "exact_match": false
+    },
+    {
+      "question": "How many players have jersey numbers greater than 50?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) FROM common_player_info WHERE CAST(jersey AS INTEGER) > 50 AND jersey != ''",
+      "generated_sql": "SELECT COUNT(DISTINCT person_id) as high_jersey_count FROM common_player_info WHERE CAST(jersey AS INTEGER) > 50",
+      "similarity_score": 0.646875,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest offensive rebound percentage?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.oreb_home ELSE g.oreb_away END) AS FLOAT) / SUM(CASE WHEN g.team_id_home = t.id THEN (g.oreb_home + g.dreb_away) ELSE (g.oreb_away + g.dreb_home) END) * 100 DESC LIMIT 1",
+      "generated_sql": "WITH team_stats AS (\n    SELECT \n        t.id, \n        t.full_name,\n        SUM(g.oreb_home) AS total_oreb,\n        SUM(g.dreb_away) AS opp_dreb_home,\n        SUM(g.oreb_away) AS total_oreb_away,\n        SUM(g.dreb_home) AS opp_dreb_away\n    FROM game g\n    JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id\n    GROUP BY t.id, t.full_name\n)\nSELECT \n    full_name,\n    ROUND(((total_oreb + total_oreb_away) * 100.0) / ((total_oreb + total_oreb_away) + (opp_dreb_home + opp_dreb_away)), 2) AS oreb_percentage\nFROM team_stats\nORDER BY oreb_percentage DESC\nLIMIT 1",
+      "similarity_score": 0.5871281254976908,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average number of three-point attempts per game?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(fg3a_home + fg3a_away), 2) as avg_3pa FROM game",
+      "generated_sql": "SELECT ROUND(AVG(fg3a_home + fg3a_away), 2) as avg_3pt_attempts_per_game FROM game",
+      "similarity_score": 0.875,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most games with 50+ rebounds?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.reb_home >= 50) OR (g.team_id_away = t.id AND g.reb_away >= 50) THEN 1 ELSE 0 END) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(*) as high_rebound_games FROM game g JOIN team t ON g.team_id_home = t.id WHERE g.reb_home >= 50 GROUP BY t.id, t.full_name UNION ALL SELECT t.full_name, COUNT(*) as high_rebound_games FROM game g JOIN team t ON g.team_id_away = t.id WHERE g.reb_away >= 50 GROUP BY t.id, t.full_name ORDER BY high_rebound_games DESC LIMIT 1",
+      "similarity_score": 0.4773429951690821,
+      "exact_match": false
+    },
+    {
+      "question": "How many players were drafted in the second round in 2017?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) FROM draft_history WHERE season = '2017' AND round_number = 2",
+      "generated_sql": "SELECT COUNT(*) as second_round_picks FROM draft_history WHERE season = '2017' AND round_number = 2 LIMIT 1",
+      "similarity_score": 0.7428571428571428,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest field goal percentage in home games?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name HAVING COUNT(*) >= 20 ORDER BY CAST(SUM(g.fgm_home) AS FLOAT) / SUM(g.fga_home) * 100 DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, ROUND(AVG(g.fg_pct_home) * 100, 2) AS avg_fg_pct_home FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY avg_fg_pct_home DESC LIMIT 1",
+      "similarity_score": 0.827888888888889,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average number of personal fouls in playoff games?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(pf_home + pf_away), 2) as avg_fouls FROM game WHERE season_type = 'Playoffs'",
+      "generated_sql": "SELECT ROUND(AVG(pf_home + pf_away), 2) AS avg_personal_fouls FROM game WHERE season_type = 'Playoffs'",
+      "similarity_score": 0.875,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most games with 30+ assists?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.ast_home >= 30) OR (g.team_id_away = t.id AND g.ast_away >= 30) THEN 1 ELSE 0 END) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_home = t.id WHERE g.ast_home >= 30 GROUP BY t.id, t.full_name UNION ALL SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_away = t.id WHERE g.ast_away >= 30 GROUP BY t.id, t.full_name ORDER BY high_assist_games DESC LIMIT 1",
+      "similarity_score": 0.4773429951690821,
+      "exact_match": false
+    },
+    {
+      "question": "What's the most common player weight?",
+      "query_type": "detail",
+      "ground_truth_sql": "SELECT weight FROM common_player_info WHERE weight != '' GROUP BY weight ORDER BY COUNT(*) DESC LIMIT 1",
+      "generated_sql": "SELECT weight, COUNT(*) as count FROM common_player_info WHERE weight IS NOT NULL GROUP BY weight ORDER BY count DESC LIMIT 1",
+      "similarity_score": 0.6991666666666666,
+      "exact_match": false
+    },
+    {
+      "question": "How many games started before 7 PM local time?",
+      "query_type": "counting",
+      "ground_truth_sql": "SELECT COUNT(*) FROM game_info WHERE CAST(SUBSTR(game_time, 1, 2) AS INTEGER) < 19",
+      "generated_sql": "SELECT COUNT(*) as early_games FROM game_info WHERE SUBSTR(game_time, 1, 5) < '19:00' AND game_time NOT LIKE '%.%'",
+      "similarity_score": 0.525,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the highest percentage of games with 10+ blocks?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.blk_home >= 10) OR (g.team_id_away = t.id AND g.blk_away >= 10) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1",
+      "generated_sql": "WITH team_block_stats AS (\n  SELECT \n    t.id, \n    t.full_name,\n    COUNT(*) AS total_games,\n    SUM(CASE WHEN g.blk_home >= 10 AND g.team_id_home = t.id THEN 1 \n             WHEN g.blk_away >= 10 AND g.team_id_away = t.id THEN 1\n             ELSE 0 END) AS games_with_10plus_blocks\n  FROM team t\n  LEFT JOIN game g ON t.id = g.team_id_home OR t.id = g.team_id_away\n  GROUP BY t.id, t.full_name\n)\nSELECT \n  full_name AS team_name,\n  ROUND(CAST(games_with_10plus_blocks AS FLOAT) / total_games * 100, 2) AS block_percentage,\n  games_with_10plus_blocks,\n  total_games\nFROM team_block_stats\nWHERE total_games > 0\nORDER BY block_percentage DESC\nLIMIT 1",
+      "similarity_score": 0.3270941558441558,
+      "exact_match": false
+    },
+    {
+      "question": "What's the average number of steals per game?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(AVG(stl_home + stl_away), 2) as avg_steals FROM game",
+      "generated_sql": "SELECT ROUND(AVG(stl_home + stl_away), 2) as avg_steals_per_game FROM game",
+      "similarity_score": 0.875,
+      "exact_match": false
+    },
+    {
+      "question": "Which team has the most games with 120+ points scored?",
+      "query_type": "ranking",
+      "ground_truth_sql": "SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home >= 120) OR (g.team_id_away = t.id AND g.pts_away >= 120) THEN 1 ELSE 0 END) DESC LIMIT 1",
+      "generated_sql": "SELECT t.full_name, COUNT(*) as high_scoring_games \nFROM game g \nJOIN team t ON g.team_id_home = t.id AND g.pts_home >= 120 OR g.team_id_away = t.id AND g.pts_away >= 120 \nGROUP BY t.id, t.full_name \nORDER BY high_scoring_games DESC \nLIMIT 1",
+      "similarity_score": 0.6991269841269842,
+      "exact_match": false
+    },
+    {
+      "question": "What percentage of games are decided by 5 points or less?",
+      "query_type": "aggregation",
+      "ground_truth_sql": "SELECT ROUND(CAST(SUM(CASE WHEN ABS(pts_home - pts_away) <= 5 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as close_game_pct FROM game",
+      "generated_sql": "SELECT ROUND(CAST(SUM(CASE WHEN ABS(pts_home - pts_away) <= 5 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as close_game_pct FROM game",
+      "similarity_score": 1.0,
+      "exact_match": true
+    }
+  ]
+}

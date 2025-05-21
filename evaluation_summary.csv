@@ -1,0 +1,821 @@
+question,query_type,baseline_similarity,improved_similarity,similarity_change,baseline_exact_match,improved_exact_match,ground_truth_sql,improved_generated_sql,baseline_generated_sql
+How many teams are in the NBA?,counting,0.375,0.95,0.575,False,False,SELECT COUNT(*) as team_count FROM team LIMIT 1,SELECT COUNT(*) as team_count FROM team,"SELECT COUNT(*) AS total_nba_teams
+FROM teams
+WHERE league = 'NBA';"
+What are the 5 oldest teams in the NBA?,ranking,0.5750000000000001,0.9166666666666666,0.34166666666666656,False,False,SELECT full_name FROM team ORDER BY year_founded ASC LIMIT 5,"SELECT full_name, year_founded FROM team ORDER BY year_founded ASC LIMIT 5","SELECT team_name, established_date
+FROM nba_teams
+ORDER BY established_date ASC
+LIMIT 5;"
+List all teams from California,filtering,0.65,1.0,0.35,False,True,SELECT full_name FROM team WHERE state = 'California',SELECT full_name FROM team WHERE state = 'California',"SELECT *
+FROM teams
+WHERE state = 'California';"
+What's the total number of games played?,counting,0.625,0.7,0.07499999999999996,False,False,SELECT COUNT(DISTINCT game_id) as total_games FROM game LIMIT 1,SELECT COUNT(*) as total_games FROM game,"SELECT COUNT(*) AS total_games_played
+FROM games;"
+What's the highest scoring game?,ranking,0.4875,0.53125,0.04375000000000001,False,False,SELECT g.pts_home + g.pts_away as total_points FROM game g ORDER BY total_points DESC LIMIT 1,"SELECT g.game_id, g.game_date, t1.full_name AS home_team, t2.full_name AS away_team, g.pts_home, g.pts_away, (g.pts_home + g.pts_away) AS total_points FROM game g JOIN team t1 ON g.team_id_home = t1.id JOIN team t2 ON g.team_id_away = t2.id ORDER BY total_points DESC LIMIT 1","SELECT *
+FROM games
+ORDER BY score DESC
+LIMIT 1;"
+How many players are from Duke University?,counting,0.61875,0.6875,0.06874999999999998,False,False,SELECT COUNT(*) as player_count FROM draft_history WHERE organization = 'Duke University' LIMIT 1,SELECT COUNT(*) as duke_players_count FROM common_player_info WHERE school = 'Duke University' LIMIT 1,"SELECT COUNT(*) AS player_count
+FROM players
+WHERE college = 'Duke University';"
+Which team has the most home games?,ranking,0.3044444444444444,0.8905555555555557,0.5861111111111112,False,False,"SELECT t.full_name FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY COUNT(*) DESC LIMIT 1","SELECT t.full_name, COUNT(*) as home_games_count FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY home_games_count DESC LIMIT 1","SELECT home_team, COUNT(*) AS home_games_count
+FROM games
+GROUP BY home_team
+ORDER BY home_games_count DESC
+LIMIT 1;"
+What's the average points per game?,aggregation,0.625,0.825,0.19999999999999996,False,False,"SELECT ROUND(AVG(pts_home + pts_away) / 2, 2) as avg_points FROM game LIMIT 1","SELECT ROUND(AVG((pts_home + pts_away) / 2), 2) as avg_points_per_game FROM game","SELECT AVG(points) AS average_points_per_game
+FROM games;"
+List all players from Spain,filtering,0.47500000000000003,0.6,0.12499999999999994,False,False,"SELECT first_name, last_name FROM common_player_info WHERE country = 'Spain'",SELECT DISTINCT cpi.display_first_last FROM common_player_info cpi WHERE cpi.country = 'Spain',"SELECT *
+FROM players
+WHERE country = 'Spain';"
+How many games went to overtime?,counting,0.44999999999999996,0.788235294117647,0.3382352941176471,False,False,SELECT COUNT(*) as ot_games FROM line_score WHERE pts_ot1_home IS NOT NULL LIMIT 1,"SELECT COUNT(*) as overtime_games 
+FROM line_score 
+WHERE pts_ot1_home IS NOT NULL AND pts_ot1_home > 0 
+   OR pts_ot1_away IS NOT NULL AND pts_ot1_away > 0","SELECT COUNT(*) AS overtime_games
+FROM games
+WHERE overtime = TRUE;"
+What's the most common jersey number?,ranking,0.10499999999999998,0.8866666666666666,0.7816666666666666,False,False,SELECT jersey FROM common_player_info WHERE jersey != '' GROUP BY jersey ORDER BY COUNT(*) DESC LIMIT 1,"SELECT jersey, COUNT(*) as count FROM common_player_info WHERE jersey != '' GROUP BY jersey ORDER BY count DESC LIMIT 1","SELECT jersey_number, COUNT(*) AS frequency
+FROM players
+GROUP BY jersey_number
+ORDER BY frequency DESC
+LIMIT 1;"
+List all teams in the Eastern Conference,filtering,0.425,0.4666666666666666,0.04166666666666663,False,False,"SELECT full_name FROM team WHERE city IN ('Boston', 'Brooklyn', 'New York', 'Philadelphia', 'Toronto', 'Chicago', 'Cleveland', 'Detroit', 'Indiana', 'Milwaukee', 'Atlanta', 'Charlotte', 'Miami', 'Orlando', 'Washington')",SELECT t.full_name FROM team t JOIN team_info_common tic ON t.id = tic.team_id WHERE tic.team_conference = 'East' GROUP BY t.full_name,"SELECT *
+FROM teams
+WHERE conference = 'Eastern'"
+What's the average height of NBA players?,aggregation,0.2,0.7432692307692307,0.5432692307692306,False,False,"SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-')-1) AS FLOAT)), 2) as avg_height FROM common_player_info WHERE height != '' LIMIT 1","SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-') - 1) AS FLOAT) * 12 + CAST(SUBSTR(height, INSTR(height, '-') + 1) AS FLOAT)), 2) as avg_height_inches FROM common_player_info WHERE height IS NOT NULL","SELECT AVG(height) AS average_height
+FROM players
+WHERE league = 'NBA';"
+How many players were drafted in 2020?,counting,0.2833333333333333,1.0,0.7166666666666667,False,True,SELECT COUNT(*) as draft_count FROM draft_history WHERE season = '2020' LIMIT 1,SELECT COUNT(*) as drafted_players_count FROM draft_history WHERE season = '2020' LIMIT 1,"SELECT COUNT(*) 
+FROM players 
+WHERE draft_year = 2020;"
+Which team has the newest arena?,detail,0.5083333333333334,0.8933333333333334,0.385,False,False,SELECT t.full_name FROM team t JOIN team_details td ON t.id = td.team_id ORDER BY td.arena DESC LIMIT 1,"SELECT t.nickname, t.full_name, td.arena FROM team_details td JOIN team t ON td.team_id = t.id ORDER BY td.arenacapacity DESC LIMIT 1","SELECT team_name
+FROM teams
+JOIN arenas ON teams.arena_id = arenas.id
+ORDER BY arenas.year_opened DESC
+LIMIT 1;"
+What's the average weight of NBA players?,aggregation,0.2,0.778125,0.578125,False,False,"SELECT ROUND(AVG(CAST(weight AS FLOAT)), 2) as avg_weight FROM common_player_info WHERE weight != '' LIMIT 1","SELECT ROUND(AVG(CAST(weight AS REAL)), 2) as avg_weight FROM common_player_info WHERE weight IS NOT NULL AND weight != ''","SELECT AVG(weight) AS average_weight
+FROM players
+WHERE league = 'NBA';"
+List all rookie players,filtering,0.3333333333333333,0.5222222222222223,0.18888888888888894,False,False,"SELECT first_name, last_name FROM common_player_info WHERE season_exp = 0",SELECT p.full_name FROM common_player_info cpi JOIN player p ON cpi.person_id = p.id WHERE cpi.season_exp = 0,"SELECT *
+FROM players
+WHERE rookie = TRUE;"
+How many games are played on Christmas Day?,counting,0.2,0.875,0.675,False,False,"SELECT COUNT(*) as christmas_games FROM game_info WHERE strftime('%m-%d', game_date) = '12-25' LIMIT 1","SELECT COUNT(*) as christmas_games FROM game WHERE strftime('%m-%d', game_date) = '12-25'","SELECT COUNT(*) AS games_on_christmas
+FROM games
+WHERE MONTH(game_date) = 12 AND DAY(game_date) = 25;"
+What's the most points scored by the home team?,ranking,0.525,0.65,0.125,False,False,SELECT pts_home FROM game ORDER BY pts_home DESC LIMIT 1,SELECT MAX(pts_home) as max_home_points FROM game LIMIT 1,"SELECT MAX(home_score) AS max_home_points
+FROM games;"
+Which team has the longest name?,detail,0.525,1.0,0.475,False,True,SELECT full_name FROM team ORDER BY LENGTH(full_name) DESC LIMIT 1,SELECT full_name FROM team ORDER BY LENGTH(full_name) DESC LIMIT 1,"SELECT team_name
+FROM teams
+ORDER BY LENGTH(team_name) DESC
+LIMIT 1;"
+How many players are guards?,counting,0.2833333333333333,0.7928571428571428,0.5095238095238095,False,False,SELECT COUNT(*) as guard_count FROM common_player_info WHERE position LIKE '%G%' LIMIT 1,SELECT COUNT(*) as guard_count FROM common_player_info WHERE position LIKE '%Guard%' OR position = 'G',"SELECT COUNT(*) 
+FROM players 
+WHERE position = 'Guard';"
+What's the average game time in hours?,aggregation,0.2,0.5963414634146341,0.3963414634146341,False,False,"SELECT ROUND(AVG(CAST(SUBSTR(game_time, 1, INSTR(game_time, ':') - 1) AS INTEGER)), 2) as avg_hours FROM game_info WHERE game_time != '' LIMIT 1","SELECT ROUND(AVG(CAST(SUBSTR(game_time, 1, INSTR(game_time, ':') - 1) AS REAL) + CAST(SUBSTR(game_time, INSTR(game_time, ':') + 1) AS REAL) / 60), 2) AS avg_game_time_hours FROM game_info","SELECT AVG(game_time_hours) AS average_game_time
+FROM games;"
+List all teams that have never made the playoffs,filtering,0.42058823529411765,0.4923529411764706,0.07176470588235295,False,False,SELECT t.full_name FROM team t WHERE NOT EXISTS (SELECT 1 FROM game g WHERE g.season_type = 'Playoffs' AND (g.team_id_home = t.id OR g.team_id_away = t.id)),"SELECT t.full_name 
+FROM team t 
+LEFT JOIN team_info_common tic ON t.id = tic.team_id 
+WHERE tic.conf_rank IS NULL OR tic.conf_rank > 8 
+GROUP BY t.id, t.full_name 
+HAVING COUNT(CASE WHEN tic.conf_rank <= 8 THEN 1 END) = 0","SELECT team.name
+FROM team
+WHERE team.id NOT IN (
+    SELECT DISTINCT team_id
+    FROM playoffs
+)"
+What's the most common player position?,ranking,0.30166666666666664,0.8516666666666667,0.55,False,False,SELECT position FROM common_player_info WHERE position IS NOT NULL GROUP BY position ORDER BY COUNT(*) DESC LIMIT 1,"SELECT position, COUNT(*) as position_count FROM common_player_info WHERE position IS NOT NULL GROUP BY position ORDER BY position_count DESC LIMIT 1","SELECT 
+    position,
+    COUNT(*) AS position_count
+FROM 
+    players
+GROUP BY 
+    position
+ORDER BY 
+    position_count DESC
+LIMIT 1;"
+List all players drafted in 2016,filtering,0.31666666666666665,0.7949999999999999,0.4783333333333333,False,False,SELECT player_name FROM draft_history WHERE season = 2016 ORDER BY overall_pick,SELECT dh.player_name FROM draft_history dh WHERE dh.season = '2016-17' ORDER BY dh.overall_pick,"SELECT *
+FROM players
+WHERE draft_year = 2016"
+What are the top 10 teams by total points scored?,ranking,0.2704615384615385,0.9102051282051283,0.6397435897435899,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN g.team_id_home = t.id THEN g.pts_home ELSE g.pts_away END) DESC LIMIT 10","SELECT t.full_name, SUM(g.pts_home) + SUM(g.pts_away) AS total_points FROM game g JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id GROUP BY t.id, t.full_name ORDER BY total_points DESC LIMIT 10","SELECT team, SUM(points) as total_points
+FROM teams
+ORDER BY total_points DESC
+LIMIT 10;"
+List all games where both teams scored over 110 points,filtering,0.6017857142857143,0.9071428571428571,0.3053571428571429,False,False,SELECT g.game_id FROM game g WHERE g.pts_home > 110 AND g.pts_away > 110,"SELECT g.game_id, g.game_date, g.team_name_home, g.pts_home, g.team_name_away, g.pts_away FROM game g WHERE g.pts_home > 110 AND g.pts_away > 110","SELECT *
+FROM games
+WHERE home_team_score > 110 AND away_team_score > 110"
+How many active players are there?,counting,0.7583333333333333,1.0,0.2416666666666667,False,True,SELECT COUNT(*) as active_players FROM player WHERE is_active = 1,SELECT COUNT(*) as active_player_count FROM player WHERE is_active = 1,"SELECT COUNT(*) AS active_player_count
+FROM players
+WHERE status = 'active';"
+What's the most common jersey number by position?,aggregation,0.17025,0.6437499999999999,0.4734999999999999,False,False,"SELECT cpi.position, cpi.jersey FROM common_player_info cpi WHERE cpi.jersey != '' AND cpi.position IS NOT NULL GROUP BY cpi.position, cpi.jersey ORDER BY COUNT(*) DESC LIMIT 1","SELECT cpi.position, cpi.jersey, COUNT(*) as jersey_count FROM common_player_info cpi WHERE cpi.jersey != '' GROUP BY cpi.position, cpi.jersey HAVING COUNT(*) = (SELECT MAX(jersey_count) FROM (SELECT position, jersey, COUNT(*) as jersey_count FROM common_player_info WHERE jersey != '' GROUP BY position, jersey) t WHERE t.position = cpi.position) ORDER BY cpi.position","WITH jersey_counts AS (
+  SELECT 
+    position,
+    jersey_number,
+    COUNT(*) AS number_of_players
+  FROM players
+  WHERE jersey_number IS NOT NULL
+  GROUP BY position, jersey_number
+),
+ranked_jerseys AS (
+  SELECT
+    position,
+    jersey_number,
+    number_of_players,
+    RANK() OVER (PARTITION BY position ORDER BY number_of_players DESC) AS rank
+  FROM jersey_counts
+)
+SELECT
+  position,
+  jersey_number AS most_common_jersey_number,
+  number_of_players
+FROM ranked_jerseys
+WHERE rank = 1
+ORDER BY position;"
+Which team has the biggest home court advantage in terms of win percentage?,ranking,0.4139285714285714,0.651984126984127,0.23805555555555558,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 100 ORDER BY (CAST(SUM(CASE WHEN g.team_id_home = t.id AND g.pts_home > g.pts_away THEN 1 ELSE 0 END) AS FLOAT) / COUNT(CASE WHEN g.team_id_home = t.id THEN 1 END) * 100 - CAST(SUM(CASE WHEN g.team_id_away = t.id AND g.pts_away > g.pts_home THEN 1 ELSE 0 END) AS FLOAT) / COUNT(CASE WHEN g.team_id_away = t.id THEN 1 END) * 100) DESC LIMIT 1","SELECT t.full_name, t.nickname, 
+       COUNT(CASE WHEN g.wl_home = 'W' THEN 1 END) * 100.0 / COUNT(*) AS home_win_percentage,
+       COUNT(CASE WHEN g.wl_away = 'W' THEN 1 END) * 100.0 / COUNT(*) AS away_win_percentage,
+       (COUNT(CASE WHEN g.wl_home = 'W' THEN 1 END) * 100.0 / COUNT(*)) - 
+       (COUNT(CASE WHEN g.wl_away = 'W' THEN 1 END) * 100.0 / COUNT(*)) AS home_court_advantage
+FROM game g
+JOIN team t ON g.team_id_home = t.id
+GROUP BY t.id, t.full_name, t.nickname
+HAVING COUNT(*) >= 10
+ORDER BY home_court_advantage DESC
+LIMIT 1;","SELECT 
+    team_name,
+    COUNT(CASE WHEN home_team_score > away_team_score THEN 1 END) AS home_wins,
+    COUNT(*) AS total_home_games,
+    ROUND((COUNT(CASE WHEN home_team_score > away_team_score THEN 1 END) * 100.0) / COUNT(*), 2) AS home_win_percentage
+FROM 
+    games
+JOIN 
+    teams ON games.home_team_id = teams.team_id
+GROUP BY 
+    team_name
+ORDER BY 
+    home_win_percentage DESC
+LIMIT 1;"
+Which season type has the highest average attendance?,comparison,0.23944444444444446,0.8666666666666667,0.6272222222222222,False,False,"SELECT g.season_type, ROUND(AVG(gi.attendance), 0) as avg_attendance FROM game g JOIN game_info gi ON g.game_id = gi.game_id WHERE gi.attendance > 0 GROUP BY g.season_type ORDER BY avg_attendance DESC LIMIT 1","SELECT g.season_type, ROUND(AVG(gi.attendance), 2) as avg_attendance FROM game g JOIN game_info gi ON g.game_id = gi.game_id GROUP BY g.season_type ORDER BY avg_attendance DESC LIMIT 1","SELECT 
+    season_type,
+    AVG(attendance) AS average_attendance
+FROM 
+    games
+GROUP BY 
+    season_type
+ORDER BY 
+    average_attendance DESC
+LIMIT 1;"
+Which team has had the most different home arenas?,history,0.43222222222222223,0.9294444444444445,0.4972222222222223,False,False,"SELECT t.full_name FROM team t JOIN team_details td ON t.id = td.team_id GROUP BY t.id, t.full_name ORDER BY COUNT(DISTINCT td.arena) DESC LIMIT 1","SELECT t.full_name, COUNT(DISTINCT td.arena) AS arena_count 
+FROM team t 
+JOIN team_details td ON t.id = td.team_id 
+GROUP BY t.id, t.full_name 
+ORDER BY arena_count DESC 
+LIMIT 1","SELECT 
+    team_name,
+    COUNT(DISTINCT arena_name) AS number_of_arenas
+FROM 
+    teams
+JOIN 
+    team_arenas ON teams.team_id = team_arenas.team_id
+GROUP BY 
+    team_name
+ORDER BY 
+    number_of_arenas DESC
+LIMIT 1;"
+What's the most common first name among NBA players?,detail,0.4766666666666666,0.8516666666666667,0.37500000000000006,False,False,SELECT first_name FROM player GROUP BY first_name ORDER BY COUNT(*) DESC LIMIT 1,"SELECT first_name, COUNT(*) as name_count FROM player GROUP BY first_name ORDER BY name_count DESC LIMIT 1","SELECT first_name, COUNT(*) as name_count
+FROM players
+WHERE league = 'NBA'
+GROUP BY first_name
+ORDER BY name_count DESC
+LIMIT 1;"
+Which conference produces the most drafted players?,counting,0.21833333333333335,0.5850000000000001,0.3666666666666667,False,False,SELECT CASE WHEN dh.organization LIKE '%ACC%' THEN 'ACC' WHEN dh.organization LIKE '%SEC%' THEN 'SEC' WHEN dh.organization LIKE '%Big Ten%' THEN 'Big Ten' ELSE 'Other' END as conference FROM draft_history dh WHERE dh.organization_type = 'College/University' GROUP BY conference ORDER BY COUNT(DISTINCT dh.person_id) DESC LIMIT 1,"SELECT dh.organization AS conference, COUNT(DISTINCT dh.person_id) AS drafted_players_count FROM draft_history dh WHERE dh.organization_type = 'College/University' GROUP BY dh.organization ORDER BY drafted_players_count DESC LIMIT 1","SELECT 
+    conference,
+    COUNT(*) AS drafted_players_count
+FROM 
+    players
+WHERE 
+    drafted = TRUE  -- Assuming there's a boolean field indicating if a player was drafted
+    -- OR draft_position IS NOT NULL  -- Alternative condition if draft status is stored differently
+GROUP BY 
+    conference
+ORDER BY 
+    drafted_players_count DESC
+LIMIT 1;"
+Which team has the highest percentage of international players?,ranking,0.25357142857142856,0.6194444444444445,0.3658730158730159,False,False,"SELECT t.full_name FROM common_player_info cpi JOIN team t ON cpi.team_id = t.id GROUP BY cpi.team_id, t.full_name HAVING COUNT(*) >= 10 ORDER BY CAST(SUM(CASE WHEN cpi.country != 'USA' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1","SELECT t.full_name, t.nickname, 
+       COUNT(CASE WHEN cpi.country != 'USA' THEN 1 END) AS intl_players,
+       COUNT(cpi.person_id) AS total_players,
+       ROUND(CAST(COUNT(CASE WHEN cpi.country != 'USA' THEN 1 END) AS FLOAT) / COUNT(cpi.person_id) * 100, 2) AS intl_percentage
+FROM team t
+JOIN common_player_info cpi ON t.id = cpi.team_id
+GROUP BY t.id, t.full_name, t.nickname
+ORDER BY intl_percentage DESC
+LIMIT 1","SELECT 
+    team_name,
+    (COUNT(CASE WHEN is_international = TRUE THEN 1 ELSE NULL END) * 100.0 / COUNT(*)) AS international_percentage
+FROM 
+    players
+GROUP BY 
+    team_name
+ORDER BY 
+    international_percentage DESC
+LIMIT 1;"
+Which school has the best average draft position?,aggregation,0.0,0.05555555555555555,0.05555555555555555,False,False,SELECT dh.organization FROM draft_history dh WHERE dh.organization_type = 'College/University' GROUP BY dh.organization HAVING COUNT(*) >= 5 ORDER BY AVG(dh.overall_pick) ASC LIMIT 1,"SELECT cpi.school, ROUND(AVG(dh.overall_pick), 2) AS avg_draft_position, COUNT(*) AS players_drafted FROM draft_history dh JOIN common_player_info cpi ON dh.person_id = cpi.person_id WHERE cpi.school IS NOT NULL AND cpi.school != '' GROUP BY cpi.school HAVING COUNT(*) >= 5 ORDER BY avg_draft_position ASC LIMIT 10","SELECT 
+    school,
+    AVG(draft_position) AS average_draft_position
+FROM 
+    players
+WHERE 
+    draft_position IS NOT NULL
+GROUP BY 
+    school
+ORDER BY 
+    average_draft_position ASC
+LIMIT 1;"
+List all teams that have never changed their team name,filtering,0.1675,0.38499999999999995,0.21749999999999994,False,False,SELECT t.full_name FROM team t LEFT JOIN team_history th ON t.id = th.team_id WHERE th.team_id IS NULL,"SELECT t.id, t.full_name, t.nickname 
+FROM team t 
+WHERE t.id NOT IN (
+    SELECT th.team_id 
+    FROM team_history th 
+    GROUP BY th.team_id 
+    HAVING COUNT(DISTINCT th.nickname) > 1
+)","SELECT team_id, team_name
+FROM teams
+GROUP BY team_id, team_name
+HAVING COUNT(DISTINCT team_name) = 1"
+Who is the referee that has officiated the most games?,aggregation,0.285,0.685,0.4000000000000001,False,False,"SELECT o.first_name || ' ' || o.last_name as name FROM officials o GROUP BY o.official_id, o.first_name, o.last_name ORDER BY COUNT(*) DESC LIMIT 1","SELECT o.first_name, o.last_name, COUNT(*) as games_officiated FROM officials o GROUP BY o.official_id, o.first_name, o.last_name ORDER BY games_officiated DESC LIMIT 1","SELECT referee_name, COUNT(*) AS games_officiated
+FROM matches
+GROUP BY referee_name
+ORDER BY games_officiated DESC
+LIMIT 1;"
+List all games with more than 15 lead changes,filtering,0.4944444444444444,0.6722222222222223,0.17777777777777787,False,False,SELECT g.game_id FROM game g JOIN other_stats os ON g.game_id = os.game_id WHERE os.lead_changes > 15,"SELECT g.game_id, g.game_date, g.team_name_home, g.team_name_away, o.lead_changes FROM game g JOIN other_stats o ON g.game_id = o.game_id WHERE o.lead_changes > 15 ORDER BY o.lead_changes DESC","SELECT *
+FROM games
+WHERE lead_changes > 15"
+Which team has the highest win percentage?,ranking,0.26573426573426573,0.6195804195804197,0.3538461538461539,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away GROUP BY t.id, t.full_name HAVING COUNT(*) >= 100 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1","SELECT t.full_name, t.nickname, tic.pct as win_percentage FROM team_info_common tic JOIN team t ON tic.team_id = t.id ORDER BY tic.pct DESC LIMIT 1","SELECT 
+    team_name,
+    (wins / CAST(games_played AS FLOAT)) * 100 AS win_percentage
+FROM 
+    teams
+ORDER BY 
+    win_percentage DESC
+LIMIT 1;"
+List all games where both teams scored over 120 points,filtering,0.6017857142857143,0.9071428571428571,0.3053571428571429,False,False,SELECT g.game_id FROM game g WHERE g.pts_home > 120 AND g.pts_away > 120,"SELECT g.game_id, g.game_date, g.team_name_home, g.pts_home, g.team_name_away, g.pts_away FROM game g WHERE g.pts_home > 120 AND g.pts_away > 120","SELECT *
+FROM games
+WHERE home_team_score > 120 AND away_team_score > 120"
+What's the average attendance for Lakers home games?,aggregation,0.6526041666666667,0.6057291666666667,-0.046875,False,False,SELECT AVG(gi.attendance) as avg_attendance FROM game g JOIN team t ON g.team_id_home = t.id JOIN game_info gi ON g.game_id = gi.game_id WHERE t.nickname = 'Lakers',"SELECT ROUND(AVG(gi.attendance), 2) as avg_attendance FROM game_info gi JOIN game g ON gi.game_id = g.game_id WHERE g.team_name_home = 'Lakers'","SELECT AVG(attendance) AS average_attendance
+FROM games
+WHERE home_team = 'Lakers';"
+List all players from Serbia,filtering,0.47500000000000003,0.6,0.12499999999999994,False,False,"SELECT first_name, last_name FROM common_player_info WHERE country = 'Serbia'",SELECT DISTINCT cpi.display_first_last FROM common_player_info cpi WHERE cpi.country = 'Serbia',"SELECT *
+FROM players
+WHERE country = 'Serbia';"
+How many games were played in 2019?,counting,0.25,0.675,0.42500000000000004,False,False,"SELECT COUNT(DISTINCT game_id) as games_played FROM game_info WHERE strftime('%Y', game_date) = '2019'","SELECT COUNT(*) as games_count FROM game WHERE strftime('%Y', game_date) = '2019'","SELECT COUNT(*) 
+FROM games 
+WHERE YEAR(game_date) = 2019;"
+What is the arena capacity for the Warriors?,detail,0.5908730158730159,0.7138888888888888,0.12301587301587291,False,False,SELECT td.arenacapacity FROM team t JOIN team_details td ON t.id = td.team_id WHERE t.nickname = 'Warriors',SELECT arenacapacity FROM team_details WHERE nickname = 'Warriors' LIMIT 1,"SELECT arena_capacity
+FROM teams
+WHERE team_name = 'Warriors' OR team_name LIKE '%Warriors%';"
+Who is the player that was inactive the most times for the Celtics?,aggregation,0.12785714285714286,0.40722222222222215,0.27936507936507926,False,False,"SELECT ip.first_name || ' ' || ip.last_name as player_name FROM inactive_players ip JOIN team t ON ip.team_id = t.id WHERE t.nickname = 'Celtics' GROUP BY ip.player_id, ip.first_name, ip.last_name ORDER BY COUNT(*) DESC LIMIT 1","SELECT ip.first_name, ip.last_name, COUNT(*) as inactive_count FROM inactive_players ip WHERE ip.team_name = 'Celtics' GROUP BY ip.player_id, ip.first_name, ip.last_name ORDER BY inactive_count DESC LIMIT 1","SELECT 
+    player_name,
+    COUNT(*) AS inactive_count
+FROM 
+    games
+WHERE 
+    team_name = 'Celtics'
+    AND status = 'Inactive'
+GROUP BY 
+    player_name
+ORDER BY 
+    inactive_count DESC
+LIMIT 1;"
+How many points did the Warriors score in the paint in their home games?,aggregation,0.5537946428571427,0.8338541666666667,0.2800595238095239,False,False,SELECT SUM(os.pts_paint_home) as total_paint_points FROM game g JOIN team t ON g.team_id_home = t.id JOIN other_stats os ON g.game_id = os.game_id WHERE t.nickname = 'Warriors',SELECT SUM(os.pts_paint_home) as total_paint_points FROM other_stats os JOIN game g ON os.game_id = g.game_id WHERE g.team_name_home = 'Warriors',"SELECT SUM(points_in_paint) AS total_points_in_paint
+FROM game_stats
+JOIN games ON game_stats.game_id = games.game_id
+JOIN teams ON game_stats.team_id = teams.team_id
+WHERE teams.team_name = 'Warriors'
+AND games.home_team_id = teams.team_id;"
+List all games that went to overtime,filtering,0.26944444444444443,0.7898313492063491,0.5203869047619047,False,False,SELECT g.game_id FROM game g JOIN line_score ls ON g.game_id = ls.game_id WHERE ls.pts_ot1_home IS NOT NULL,"SELECT g.game_id, g.game_date, g.team_name_home, g.team_name_away, g.pts_home, g.pts_away FROM game g JOIN line_score ls ON g.game_id = ls.game_id WHERE ls.pts_ot1_home IS NOT NULL AND ls.pts_ot1_home > 0","SELECT *
+FROM games
+WHERE went_to_overtime = TRUE;"
+Which team had the most nationally televised games?,aggregation,0.034999999999999996,0.8422916666666667,0.8072916666666666,False,False,"SELECT t.full_name FROM game_summary gs JOIN team t ON gs.home_team_id = t.id OR gs.visitor_team_id = t.id WHERE gs.natl_tv_broadcaster_abbreviation IS NOT NULL GROUP BY t.id, t.full_name ORDER BY COUNT(*) DESC LIMIT 1","SELECT t.full_name, COUNT(*) as national_tv_games FROM game_summary gs JOIN team t ON gs.home_team_id = t.id OR gs.visitor_team_id = t.id WHERE gs.natl_tv_broadcaster_abbreviation IS NOT NULL AND gs.natl_tv_broadcaster_abbreviation != '' GROUP BY t.id, t.full_name ORDER BY national_tv_games DESC LIMIT 1","SELECT team_name, COUNT(*) AS nationally_televised_games
+FROM games
+WHERE nationally_televised = TRUE
+GROUP BY team_name
+ORDER BY nationally_televised_games DESC
+LIMIT 1;"
+Which team scored the most fast break points?,ranking,0.31575,0.7070000000000001,0.3912500000000001,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away JOIN other_stats os ON g.game_id = os.game_id GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN g.team_id_home = t.id THEN os.pts_fb_home ELSE os.pts_fb_away END) DESC LIMIT 1","SELECT t.full_name, MAX(GREATEST(o.pts_fb_home, o.pts_fb_away)) as max_fast_break_points FROM other_stats o JOIN team t ON o.team_id_home = t.id OR o.team_id_away = t.id GROUP BY t.full_name ORDER BY max_fast_break_points DESC LIMIT 1","SELECT team_name, SUM(fast_break_points) AS total_fast_break_points
+FROM team_stats
+GROUP BY team_name
+ORDER BY total_fast_break_points DESC
+LIMIT 1"
+Which team has the best record in close games (margin ≤ 5 points)?,ranking,0.04335518648018648,0.10518939393939394,0.061834207459207466,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) WHERE ABS(g.pts_home - g.pts_away) <= 5 GROUP BY t.id, t.full_name HAVING COUNT(*) >= 100 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1","WITH close_games AS (
+  SELECT 
+    team_id_home AS team_id, 
+    CASE WHEN wl_home = 'W' THEN 1 ELSE 0 END AS win
+  FROM game 
+  WHERE ABS(pts_home - pts_away) <= 5
+  UNION ALL
+  SELECT 
+    team_id_away AS team_id, 
+    CASE WHEN wl_away = 'W' THEN 1 ELSE 0 END AS win
+  FROM game 
+  WHERE ABS(pts_home - pts_away) <= 5
+)
+SELECT 
+  t.full_name, 
+  COUNT(*) AS total_close_games,
+  SUM(cg.win) AS wins,
+  ROUND(CAST(SUM(cg.win) AS FLOAT) / COUNT(*) * 100, 2) AS win_percentage
+FROM close_games cg
+JOIN team t ON cg.team_id = t.id
+GROUP BY cg.team_id, t.full_name
+HAVING COUNT(*) >= 10
+ORDER BY win_percentage DESC
+LIMIT 1","WITH close_games AS (
+    SELECT 
+        home_team AS team,
+        CASE WHEN home_score > away_score THEN 1 ELSE 0 END AS win
+    FROM games
+    WHERE ABS(home_score - away_score) <= 5
+    
+    UNION ALL
+    
+    SELECT 
+        away_team AS team,
+        CASE WHEN away_score > home_score THEN 1 ELSE 0 END AS win
+    FROM games
+    WHERE ABS(home_score - away_score) <= 5
+),
+team_records AS (
+    SELECT 
+        team,
+        SUM(win) AS wins,
+        COUNT(*) - SUM(win) AS losses,
+        SUM(win) * 1.0 / COUNT(*) AS win_percentage
+    FROM close_games
+    GROUP BY team
+)
+SELECT 
+    team,
+    wins,
+    losses,
+    win_percentage
+FROM team_records
+WHERE wins > 0  -- Only include teams that have at least one win
+ORDER BY win_percentage DESC, wins DESC
+LIMIT 1;"
+Who is the player with the longest name?,filtering,0.35,0.5750000000000001,0.2250000000000001,False,False,SELECT first_name || ' ' || last_name as full_name FROM common_player_info ORDER BY LENGTH(first_name || ' ' || last_name) DESC LIMIT 1,SELECT full_name FROM player ORDER BY LENGTH(full_name) DESC LIMIT 1,"SELECT player_name
+FROM players
+ORDER BY LENGTH(player_name) DESC
+LIMIT 1;"
+What's the average margin of victory in playoff games?,comparison,0.42083333333333334,0.6,0.17916666666666664,False,False,"SELECT ROUND(AVG(ABS(g.pts_home - g.pts_away)), 2) as avg_margin FROM game g WHERE g.season_type = 'Playoffs'","SELECT ROUND(AVG(ABS(pts_home - pts_away)), 2) AS avg_margin_of_victory FROM game WHERE season_type = 'Playoffs'","SELECT AVG(ABS(home_score - away_score)) AS average_margin_of_victory
+FROM games
+WHERE is_playoff_game = TRUE;"
+Which team has the most different players on their all-time roster?,aggregation,0.3044444444444444,0.8461111111111111,0.5416666666666667,False,False,"SELECT t.full_name FROM team t JOIN common_player_info cpi ON t.id = cpi.team_id GROUP BY t.id, t.full_name ORDER BY COUNT(DISTINCT cpi.person_id) DESC LIMIT 1","SELECT t.full_name, COUNT(DISTINCT cpi.person_id) as player_count 
+FROM common_player_info cpi 
+JOIN team t ON cpi.team_id = t.id 
+GROUP BY t.id, t.full_name 
+ORDER BY player_count DESC 
+LIMIT 1","SELECT 
+    team_name,
+    COUNT(DISTINCT player_id) AS total_players
+FROM 
+    team_rosters
+GROUP BY 
+    team_name
+ORDER BY 
+    total_players DESC
+LIMIT 1;"
+What's the most common final score?,aggregation,0.3725,0.45999999999999996,0.08749999999999997,False,False,"SELECT g.pts_home || '-' || g.pts_away as score FROM game g GROUP BY g.pts_home, g.pts_away ORDER BY COUNT(*) DESC LIMIT 1","SELECT pts_home, pts_away, COUNT(*) as frequency FROM game GROUP BY pts_home, pts_away ORDER BY frequency DESC LIMIT 1","SELECT final_score, COUNT(*) AS frequency
+FROM games
+GROUP BY final_score
+ORDER BY frequency DESC
+LIMIT 1;"
+Which team has the best record on Christmas Day?,ranking,0.052331070889894415,0.5767142857142856,0.5243832148243912,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) JOIN game_info gi ON g.game_id = gi.game_id WHERE strftime('%m-%d', gi.game_date) = '12-25' GROUP BY t.id, t.full_name HAVING COUNT(*) >= 5 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) DESC LIMIT 1","SELECT t.full_name, 
+       COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'W') OR (g.team_id_away = t.id AND g.wl_away = 'W') THEN 1 END) AS wins,
+       COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'L') OR (g.team_id_away = t.id AND g.wl_away = 'L') THEN 1 END) AS losses,
+       ROUND(COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'W') OR (g.team_id_away = t.id AND g.wl_away = 'W') THEN 1 END) * 100.0 / 
+             (COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'W') OR (g.team_id_away = t.id AND g.wl_away = 'W') THEN 1 END) + 
+              COUNT(CASE WHEN (g.team_id_home = t.id AND g.wl_home = 'L') OR (g.team_id_away = t.id AND g.wl_away = 'L') THEN 1 END)), 2) AS win_percentage,
+       COUNT(*) AS total_games
+FROM game g
+JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id
+WHERE strftime('%m-%d', g.game_date) = '12-25'
+GROUP BY t.id, t.full_name
+HAVING total_games > 0
+ORDER BY win_percentage DESC, total_games DESC
+LIMIT 1;","SELECT 
+    team_name,
+    COUNT(*) AS total_games,
+    SUM(CASE WHEN is_winner = TRUE THEN 1 ELSE 0 END) AS wins,
+    SUM(CASE WHEN is_winner = FALSE THEN 1 ELSE 0 END) AS losses,
+    CAST(SUM(CASE WHEN is_winner = TRUE THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) AS win_percentage
+FROM (
+    -- This subquery gets all Christmas Day games for each team
+    SELECT 
+        home_team AS team_name,
+        CASE WHEN home_score > away_score THEN TRUE ELSE FALSE END AS is_winner
+    FROM games
+    WHERE EXTRACT(MONTH FROM game_date) = 12 AND EXTRACT(DAY FROM game_date) = 25
+    
+    UNION ALL
+    
+    SELECT 
+        away_team AS team_name,
+        CASE WHEN away_score > home_score THEN TRUE ELSE FALSE END AS is_winner
+    FROM games
+    WHERE EXTRACT(MONTH FROM game_date) = 12 AND EXTRACT(DAY FROM game_date) = 25
+) AS christmas_games
+GROUP BY team_name
+ORDER BY win_percentage DESC, wins DESC
+LIMIT 1;"
+What's the win percentage difference between teams with 3+ rest days vs fewer rest days?,comparison,0.05603448275862069,0.19916666666666666,0.14313218390804597,False,False,"WITH rest_days AS (SELECT g.game_id, t.id, t.full_name, JULIANDAY(g.game_date) - JULIANDAY(LAG(g.game_date) OVER (PARTITION BY t.id ORDER BY g.game_date)) as days_rest, CASE WHEN (g.team_id_home = t.id AND g.pts_home > g.pts_away) OR (g.team_id_away = t.id AND g.pts_away > g.pts_home) THEN 1 ELSE 0 END as won FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away)) SELECT ROUND(AVG(CASE WHEN days_rest >= 3 THEN won END) * 100, 2) - ROUND(AVG(CASE WHEN days_rest < 3 THEN won END) * 100, 2) as win_pct_diff FROM rest_days WHERE days_rest IS NOT NULL","WITH game_with_rest AS (
+  SELECT 
+    g1.game_id,
+    g1.team_id_home,
+    g1.team_id_away,
+    g1.wl_home,
+    g1.wl_away,
+    JULIANDAY(g1.game_date) - JULIANDAY(MAX(g2.game_date)) AS home_rest_days,
+    JULIANDAY(g1.game_date) - JULIANDAY(MAX(g3.game_date)) AS away_rest_days
+  FROM game g1
+  LEFT JOIN game g2 ON (g1.team_id_home = g2.team_id_home OR g1.team_id_home = g2.team_id_away)
+    AND g2.game_date < g1.game_date
+  LEFT JOIN game g3 ON (g1.team_id_away = g3.team_id_home OR g1.team_id_away = g3.team_id_away)
+    AND g3.game_date < g1.game_date
+  GROUP BY g1.game_id, g1.team_id_home, g1.team_id_away
+),
+win_stats AS (
+  SELECT
+    ROUND(SUM(CASE WHEN home_rest_days >= 3 AND wl_home = 'W' THEN 1 ELSE 0 END) * 100.0 / 
+      NULLIF(SUM(CASE WHEN home_rest_days >= 3 THEN 1 ELSE 0 END), 0), 2) AS home_win_pct_more_rest,
+    ROUND(SUM(CASE WHEN home_rest_days < 3 AND wl_home = 'W' THEN 1 ELSE 0 END) * 100.0 / 
+      NULLIF(SUM(CASE WHEN home_rest_days < 3 THEN 1 ELSE 0 END), 0), 2) AS home_win_pct_less_rest,
+    ROUND(SUM(CASE WHEN away_rest_days >= 3 AND wl_away = 'W' THEN 1 ELSE 0 END) * 100.0 / 
+      NULLIF(SUM(CASE WHEN away_rest_days >= 3 THEN 1 ELSE 0 END), 0), 2) AS away_win_pct_more_rest,
+    ROUND(SUM(CASE WHEN away_rest_days < 3 AND wl_away = 'W' THEN 1 ELSE 0 END) * 100.0 / 
+      NULLIF(SUM(CASE WHEN away_rest_days < 3 THEN 1 ELSE 0 END), 0), 2) AS away_win_pct_less_rest
+  FROM game_with_rest
+)
+SELECT 
+  ROUND(((home_win_pct_more_rest + away_win_pct_more_rest) / 2) - 
+        ((home_win_pct_less_rest + away_win_pct_less_rest) / 2), 2) AS win_pct_difference
+FROM win_stats","WITH RestDayStats AS (
+    SELECT 
+        CASE WHEN rest_days >= 3 THEN 'ThreeOrMoreRestDays' ELSE 'FewerRestDays' END AS rest_category,
+        COUNT(*) AS total_games,
+        SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) AS wins
+    FROM games
+    GROUP BY CASE WHEN rest_days >= 3 THEN 'ThreeOrMoreRestDays' ELSE 'FewerRestDays' END
+)
+
+SELECT 
+    MAX(CASE WHEN rest_category = 'ThreeOrMoreRestDays' THEN (wins * 100.0 / total_games) END) AS three_plus_rest_win_pct,
+    MAX(CASE WHEN rest_category = 'FewerRestDays' THEN (wins * 100.0 / total_games) END) AS fewer_rest_win_pct,
+    MAX(CASE WHEN rest_category = 'ThreeOrMoreRestDays' THEN (wins * 100.0 / total_games) END) - 
+    MAX(CASE WHEN rest_category = 'FewerRestDays' THEN (wins * 100.0 / total_games) END) AS win_pct_difference
+FROM RestDayStats;"
+How many players have played for both the Lakers and Celtics?,counting,0.15902777777777777,0.4434027777777778,0.28437500000000004,False,False,"WITH team_players AS (SELECT DISTINCT cpi.person_id FROM common_player_info cpi JOIN team t ON cpi.team_id = t.id WHERE t.nickname IN ('Lakers', 'Celtics')) SELECT COUNT(*) as players_count FROM (SELECT person_id FROM team_players GROUP BY person_id HAVING COUNT(*) = 2) x LIMIT 1","WITH lakers_players AS (SELECT DISTINCT person_id FROM common_player_info WHERE team_name = 'Lakers'), celtics_players AS (SELECT DISTINCT person_id FROM common_player_info WHERE team_name = 'Celtics') SELECT COUNT(*) as players_count FROM lakers_players lp JOIN celtics_players cp ON lp.person_id = cp.person_id","SELECT COUNT(DISTINCT player_id) 
+FROM player_teams
+WHERE team_id IN (
+    SELECT team_id 
+    FROM teams 
+    WHERE team_name = 'Lakers'
+)
+AND player_id IN (
+    SELECT player_id 
+    FROM player_teams
+    WHERE team_id IN (
+        SELECT team_id 
+        FROM teams 
+        WHERE team_name = 'Celtics'
+    )
+);"
+How many games have gone to multiple overtimes?,counting,0.21944444444444444,0.5561111111111111,0.33666666666666667,False,False,SELECT COUNT(*) as multi_ot_games FROM game g JOIN line_score l ON g.game_id = l.game_id WHERE l.pts_ot2_home IS NOT NULL LIMIT 1,"SELECT COUNT(*) as multiple_overtime_games 
+FROM line_score 
+WHERE (pts_ot2_home IS NOT NULL AND pts_ot2_home != 0) 
+   OR (pts_ot2_away IS NOT NULL AND pts_ot2_away != 0)","SELECT COUNT(*) AS games_with_multiple_overtimes
+FROM games
+WHERE number_of_overtimes > 1;"
+What's the average game attendance?,aggregation,0.2,0.7,0.49999999999999994,False,False,"SELECT ROUND(AVG(attendance), 0) as avg_attendance FROM game_info WHERE attendance > 0 LIMIT 1","SELECT ROUND(AVG(attendance), 2) as avg_attendance FROM game_info","SELECT AVG(attendance) AS average_attendance
+FROM games;"
+Which team has the highest percentage of games with 100+ points scored?,ranking,0.27414772727272724,0.679965034965035,0.4058173076923078,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home >= 100) OR (g.team_id_away = t.id AND g.pts_away >= 100) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1","SELECT t.full_name, t.nickname, ROUND(COUNT(CASE WHEN (g.team_id_home = t.id AND g.pts_home >= 100) OR (g.team_id_away = t.id AND g.pts_away >= 100) THEN 1 END) * 100.0 / COUNT(*), 2) AS pct_games_100_plus FROM game g JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id GROUP BY t.id, t.full_name, t.nickname ORDER BY pct_games_100_plus DESC LIMIT 1","SELECT 
+    team_name,
+    COUNT(CASE WHEN points >= 100 THEN 1 END) AS games_with_100_plus,
+    COUNT(*) AS total_games,
+    (COUNT(CASE WHEN points >= 100 THEN 1 END) * 100.0 / COUNT(*)) AS percentage
+FROM games
+GROUP BY team_name
+ORDER BY percentage DESC
+LIMIT 1;"
+What's the largest point deficit in any game?,ranking,0.675,0.95,0.2749999999999999,False,False,SELECT MAX(ABS(pts_home - pts_away)) as max_deficit FROM game,SELECT MAX(ABS(pts_home - pts_away)) as largest_deficit FROM game LIMIT 1,"SELECT 
+    MAX(ABS(home_score - away_score)) AS largest_point_deficit
+FROM 
+    games;"
+What percentage of games are won by the home team?,aggregation,0.675,1.0,0.32499999999999996,False,True,"SELECT ROUND(CAST(SUM(CASE WHEN pts_home > pts_away THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as home_win_pct FROM game","SELECT ROUND(CAST(SUM(CASE WHEN wl_home = 'W' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as home_win_pct FROM game","SELECT 
+    (COUNT(CASE WHEN home_team_score > away_team_score THEN 1 END) * 100.0 / COUNT(*)) AS home_team_win_percentage
+FROM 
+    games"
+Which team has the highest free throw percentage?,ranking,0.2740489130434782,0.7156354515050167,0.4415865384615385,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING SUM(CASE WHEN g.team_id_home = t.id THEN g.fta_home ELSE g.fta_away END) >= 100 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.ftm_home ELSE g.ftm_away END) AS FLOAT) / SUM(CASE WHEN g.team_id_home = t.id THEN g.fta_home ELSE g.fta_away END) * 100 DESC LIMIT 1","SELECT t.full_name, ROUND(SUM(g.ftm_home + g.ftm_away) * 100.0 / NULLIF(SUM(g.fta_home + g.fta_away), 0), 2) AS ft_pct 
+FROM game g 
+JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away 
+GROUP BY t.id, t.full_name 
+ORDER BY ft_pct DESC 
+LIMIT 1","SELECT 
+    team_name,
+    (free_throws_made / free_throws_attempted) * 100 AS free_throw_percentage
+FROM 
+    teams
+ORDER BY 
+    free_throw_percentage DESC
+LIMIT 1;"
+What's the average number of fouls per game?,aggregation,0.675,0.875,0.19999999999999996,False,False,"SELECT ROUND(AVG(pf_home + pf_away), 2) as avg_fouls FROM game","SELECT ROUND(AVG(pf_home + pf_away), 2) as avg_fouls_per_game FROM game","SELECT AVG(fouls) AS average_fouls_per_game
+FROM games;"
+Which team has the highest 3-point shooting percentage?,ranking,0.2740489130434782,0.6856354515050167,0.4115865384615385,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING SUM(CASE WHEN g.team_id_home = t.id THEN g.fg3a_home ELSE g.fg3a_away END) >= 100 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.fg3m_home ELSE g.fg3m_away END) AS FLOAT) / SUM(CASE WHEN g.team_id_home = t.id THEN g.fg3a_home ELSE g.fg3a_away END) * 100 DESC LIMIT 1","SELECT t.full_name, t.nickname, ROUND(AVG(CASE WHEN g.team_id_home = t.id THEN g.fg3_pct_home ELSE g.fg3_pct_away END) * 100, 2) AS avg_3pt_pct FROM game g JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away GROUP BY t.id, t.full_name, t.nickname ORDER BY avg_3pt_pct DESC LIMIT 1","SELECT 
+    team_name,
+    (made_three_pointers / NULLIF(attempted_three_pointers, 0)) * 100 AS three_point_percentage
+FROM 
+    teams
+ORDER BY 
+    three_point_percentage DESC
+LIMIT 1;"
+What's the average number of rebounds per game?,aggregation,0.675,0.875,0.19999999999999996,False,False,"SELECT ROUND(AVG(reb_home + reb_away), 2) as avg_rebounds FROM game","SELECT ROUND(AVG(reb_home + reb_away), 2) as avg_rebounds_per_game FROM game","SELECT AVG(rebounds) AS average_rebounds_per_game
+FROM games;"
+How many games were decided by a single possession (3 points or less)?,counting,0.55,0.75,0.19999999999999996,False,False,SELECT COUNT(*) FROM game WHERE ABS(pts_home - pts_away) <= 3,SELECT COUNT(*) as single_possession_games FROM game WHERE ABS(pts_home - pts_away) <= 3,"SELECT COUNT(*) AS single_possession_games
+FROM games
+WHERE ABS(home_score - away_score) <= 3"
+How many players were drafted in the first round in 2019?,counting,0.42142857142857143,0.7428571428571428,0.32142857142857134,False,False,SELECT COUNT(*) FROM draft_history WHERE season = '2019' AND round_number = 1,SELECT COUNT(*) as first_round_picks FROM draft_history WHERE season = '2019' AND round_number = 1 LIMIT 1,"SELECT COUNT(*) AS first_round_draft_count
+FROM players
+WHERE draft_round = 1 
+AND draft_year = 2019;"
+Which team has the highest average attendance?,ranking,0.04593749999999999,0.6225,0.5765625000000001,False,False,"SELECT t.full_name FROM game g JOIN team t ON g.team_id_home = t.id JOIN game_info gi ON g.game_id = gi.game_id WHERE gi.attendance > 0 GROUP BY t.id, t.full_name ORDER BY AVG(gi.attendance) DESC LIMIT 1","SELECT t.full_name, ROUND(AVG(gi.attendance), 2) as avg_attendance FROM game_info gi JOIN game g ON gi.game_id = g.game_id JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY avg_attendance DESC LIMIT 1","SELECT team, AVG(attendance) as average_attendance
+FROM games
+GROUP BY team
+ORDER BY average_attendance DESC
+LIMIT 1;"
+What's the most common final score in overtime games?,aggregation,0.05444444444444444,0.27111111111111114,0.2166666666666667,False,False,"SELECT g.pts_home || '-' || g.pts_away as score FROM game g JOIN line_score l ON g.game_id = l.game_id WHERE l.pts_ot1_home IS NOT NULL GROUP BY g.pts_home, g.pts_away ORDER BY COUNT(*) DESC LIMIT 1","SELECT pts_home || '-' || pts_away AS final_score, COUNT(*) AS frequency FROM line_score WHERE (pts_ot1_home > 0 OR pts_ot1_away > 0) GROUP BY final_score ORDER BY frequency DESC LIMIT 1","SELECT 
+    home_score || '-' || away_score AS final_score,
+    COUNT(*) AS frequency
+FROM 
+    games
+WHERE 
+    is_overtime = TRUE
+GROUP BY 
+    final_score
+ORDER BY 
+    frequency DESC
+LIMIT 1;"
+How many players are from Kentucky?,counting,0.6416666666666667,0.3666666666666667,-0.275,False,False,SELECT COUNT(*) FROM draft_history WHERE organization = 'Kentucky',SELECT COUNT(*) as kentucky_players FROM common_player_info WHERE school = 'Kentucky' LIMIT 1,"SELECT COUNT(*) 
+FROM players 
+WHERE state = 'Kentucky';"
+Which team has the most assists per game?,ranking,0.29958333333333337,0.738525641025641,0.43894230769230763,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.ast_home ELSE g.ast_away END) AS FLOAT) / COUNT(*) DESC LIMIT 1","SELECT t.full_name, ROUND(AVG(CASE WHEN g.team_id_home = t.id THEN g.ast_home ELSE g.ast_away END), 2) AS avg_assists_per_game FROM game g JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id GROUP BY t.id, t.full_name ORDER BY avg_assists_per_game DESC LIMIT 1","SELECT 
+    team_name,
+    SUM(assists) / COUNT(DISTINCT game_id) AS assists_per_game
+FROM 
+    team_game_stats
+GROUP BY 
+    team_name
+ORDER BY 
+    assists_per_game DESC
+LIMIT 1;"
+What's the average height of centers?,aggregation,0.28571428571428575,0.8236263736263736,0.5379120879120878,False,False,"SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-')-1) AS FLOAT)), 2) as avg_height FROM common_player_info WHERE position LIKE '%C%' AND height != ''","SELECT ROUND(AVG(CAST(SUBSTR(height, 1, INSTR(height, '-') - 1) AS FLOAT) * 12 + CAST(SUBSTR(height, INSTR(height, '-') + 1) AS FLOAT)), 2) as avg_height_inches FROM common_player_info WHERE position LIKE '%Center%' OR position = 'C'","SELECT AVG(height) 
+FROM players 
+WHERE position = 'Center';"
+Which team has the most playoff appearances?,ranking,0.056874999999999995,0.8093589743589744,0.7524839743589744,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) WHERE g.season_type = 'Playoffs' GROUP BY t.id, t.full_name ORDER BY COUNT(DISTINCT SUBSTR(g.season_id, 1, 4)) DESC LIMIT 1","SELECT t.full_name, COUNT(DISTINCT g.season_id) AS playoff_appearances 
+FROM game g 
+JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id 
+WHERE g.season_type = 'Playoffs' 
+GROUP BY t.id, t.full_name 
+ORDER BY playoff_appearances DESC 
+LIMIT 1","SELECT 
+    team_name,
+    COUNT(*) AS playoff_appearances
+FROM 
+    playoff_teams
+GROUP BY 
+    team_name
+ORDER BY 
+    playoff_appearances DESC
+LIMIT 1;"
+What's the most common player height?,detail,0.33666666666666667,0.6991666666666666,0.36249999999999993,False,False,SELECT height FROM common_player_info WHERE height != '' GROUP BY height ORDER BY COUNT(*) DESC LIMIT 1,"SELECT height, COUNT(*) as count FROM common_player_info WHERE height IS NOT NULL GROUP BY height ORDER BY count DESC LIMIT 1","SELECT height, COUNT(*) AS count
+FROM players
+GROUP BY height
+ORDER BY count DESC
+LIMIT 1;"
+How many games were played on New Year's Day?,counting,0.25,0.675,0.42500000000000004,False,False,"SELECT COUNT(*) FROM game_info WHERE strftime('%m-%d', game_date) = '01-01'","SELECT COUNT(*) as games_count FROM game WHERE strftime('%m-%d', game_date) = '01-01'","SELECT COUNT(*) AS games_count
+FROM games
+WHERE MONTH(game_date) = 1 AND DAY(game_date) = 1;"
+Which team has the highest percentage of games with 10+ steals?,ranking,0.27414772727272724,0.3349512987012987,0.06080357142857146,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.stl_home >= 10) OR (g.team_id_away = t.id AND g.stl_away >= 10) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1","WITH team_games AS (
+  SELECT team_id_home AS team_id, COUNT(*) AS total_games, SUM(CASE WHEN stl_home >= 10 THEN 1 ELSE 0 END) AS games_with_10_steals
+  FROM game
+  GROUP BY team_id_home
+  UNION ALL
+  SELECT team_id_away AS team_id, COUNT(*) AS total_games, SUM(CASE WHEN stl_away >= 10 THEN 1 ELSE 0 END) AS games_with_10_steals
+  FROM game
+  GROUP BY team_id_away
+), team_stats AS (
+  SELECT team_id, SUM(total_games) AS total_games, SUM(games_with_10_steals) AS games_with_10_steals
+  FROM team_games
+  GROUP BY team_id
+)
+SELECT t.full_name, ROUND(CAST(ts.games_with_10_steals AS FLOAT) / ts.total_games * 100, 2) AS steal_percentage
+FROM team_stats ts
+JOIN team t ON ts.team_id = t.id
+ORDER BY steal_percentage DESC
+LIMIT 1","SELECT 
+    team_name,
+    (COUNT(CASE WHEN steals >= 10 THEN 1 END) * 100.0 / COUNT(*)) AS percentage_games_with_10plus_steals
+FROM 
+    games
+GROUP BY 
+    team_name
+ORDER BY 
+    percentage_games_with_10plus_steals DESC
+LIMIT 1;"
+What's the average number of blocks per game?,aggregation,0.675,0.875,0.19999999999999996,False,False,"SELECT ROUND(AVG(blk_home + blk_away), 2) as avg_blocks FROM game","SELECT ROUND(AVG(blk_home + blk_away), 2) as avg_blocks_per_game FROM game","SELECT AVG(blocks) AS average_blocks_per_game
+FROM games;"
+Which team has the most games with 20+ assists?,ranking,0.025763888888888888,0.4773429951690821,0.4515791062801932,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.ast_home >= 20) OR (g.team_id_away = t.id AND g.ast_away >= 20) THEN 1 ELSE 0 END) DESC LIMIT 1","SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_home = t.id WHERE g.ast_home >= 20 GROUP BY t.id, t.full_name UNION ALL SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_away = t.id WHERE g.ast_away >= 20 GROUP BY t.id, t.full_name ORDER BY high_assist_games DESC LIMIT 1","SELECT 
+    team_name,
+    COUNT(*) AS games_with_20plus_assists
+FROM 
+    games
+WHERE 
+    team_assists >= 20
+GROUP BY 
+    team_name
+ORDER BY 
+    games_with_20plus_assists DESC
+LIMIT 1;"
+Which team has the lowest turnover rate?,ranking,0.25,0.6834615384615385,0.43346153846153845,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.tov_home ELSE g.tov_away END) AS FLOAT) / COUNT(*) ASC LIMIT 1","SELECT t.full_name, t.nickname, 
+       ROUND(AVG(CASE WHEN g.team_id_home = t.id THEN g.tov_home ELSE g.tov_away END), 2) AS avg_turnovers
+FROM game g
+JOIN team t ON t.id = g.team_id_home OR t.id = g.team_id_away
+GROUP BY t.id, t.full_name, t.nickname
+ORDER BY avg_turnovers ASC
+LIMIT 1","SELECT team_name, 
+       (COUNT(CASE WHEN employee_status = 'terminated' OR employee_status = 'resigned' THEN 1 END) * 100.0 / COUNT(*)) AS turnover_rate
+FROM employees
+GROUP BY team_name
+ORDER BY turnover_rate ASC
+LIMIT 1;"
+What's the average weight of power forwards?,aggregation,0.296875,0.7984375,0.5015625,False,False,"SELECT ROUND(AVG(CAST(weight AS FLOAT)), 2) as avg_weight FROM common_player_info WHERE position LIKE '%F%' AND weight != ''","SELECT ROUND(AVG(CAST(weight AS FLOAT)), 2) as avg_weight FROM common_player_info WHERE position = 'Forward' OR position = 'Forward-Center' OR position = 'Forward-Guard' OR position LIKE '%Power Forward%'","SELECT AVG(weight) AS average_weight
+FROM players
+WHERE position = 'Power Forward' OR position = 'PF';"
+Which team has the most games with 15+ three-pointers made?,ranking,0.025763888888888888,0.4236805555555555,0.39791666666666664,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.fg3m_home >= 15) OR (g.team_id_away = t.id AND g.fg3m_away >= 15) THEN 1 ELSE 0 END) DESC LIMIT 1","SELECT t.full_name, COUNT(*) as games_with_15plus_3pm 
+FROM (
+    SELECT team_id_home as team_id FROM game WHERE fg3m_home >= 15
+    UNION ALL
+    SELECT team_id_away as team_id FROM game WHERE fg3m_away >= 15
+) g
+JOIN team t ON g.team_id = t.id
+GROUP BY t.id, t.full_name
+ORDER BY games_with_15plus_3pm DESC
+LIMIT 1","SELECT 
+    team_name,
+    COUNT(*) AS games_with_15plus_threes
+FROM 
+    games
+WHERE 
+    three_pointers_made >= 15
+GROUP BY 
+    team_name
+ORDER BY 
+    games_with_15plus_threes DESC
+LIMIT 1;"
+What's the most common margin of victory?,detail,0.12999999999999998,0.8216666666666667,0.6916666666666667,False,False,SELECT ABS(pts_home - pts_away) as margin FROM game GROUP BY margin ORDER BY COUNT(*) DESC LIMIT 1,"SELECT ABS(pts_home - pts_away) as margin_of_victory, COUNT(*) as frequency FROM game GROUP BY margin_of_victory ORDER BY frequency DESC LIMIT 1","SELECT 
+    margin_of_victory, 
+    COUNT(*) as frequency
+FROM (
+    SELECT 
+        ABS(home_score - away_score) as margin_of_victory
+    FROM games
+    WHERE home_score != away_score  -- Excluding ties
+) as victory_margins
+GROUP BY margin_of_victory
+ORDER BY frequency DESC
+LIMIT 1;"
+How many players have jersey numbers greater than 50?,counting,0.521875,0.646875,0.125,False,False,SELECT COUNT(*) FROM common_player_info WHERE CAST(jersey AS INTEGER) > 50 AND jersey != '',SELECT COUNT(DISTINCT person_id) as high_jersey_count FROM common_player_info WHERE CAST(jersey AS INTEGER) > 50,"SELECT COUNT(*) 
+FROM players 
+WHERE jersey_number > 50;"
+Which team has the highest offensive rebound percentage?,ranking,0.2740489130434782,0.5871281254976908,0.31307921245421255,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN g.team_id_home = t.id THEN g.oreb_home ELSE g.oreb_away END) AS FLOAT) / SUM(CASE WHEN g.team_id_home = t.id THEN (g.oreb_home + g.dreb_away) ELSE (g.oreb_away + g.dreb_home) END) * 100 DESC LIMIT 1","WITH team_stats AS (
+    SELECT 
+        t.id, 
+        t.full_name,
+        SUM(g.oreb_home) AS total_oreb,
+        SUM(g.dreb_away) AS opp_dreb_home,
+        SUM(g.oreb_away) AS total_oreb_away,
+        SUM(g.dreb_home) AS opp_dreb_away
+    FROM game g
+    JOIN team t ON g.team_id_home = t.id OR g.team_id_away = t.id
+    GROUP BY t.id, t.full_name
+)
+SELECT 
+    full_name,
+    ROUND(((total_oreb + total_oreb_away) * 100.0) / ((total_oreb + total_oreb_away) + (opp_dreb_home + opp_dreb_away)), 2) AS oreb_percentage
+FROM team_stats
+ORDER BY oreb_percentage DESC
+LIMIT 1","SELECT 
+    team_name,
+    offensive_rebound_percentage
+FROM 
+    team_stats
+ORDER BY 
+    offensive_rebound_percentage DESC
+LIMIT 1;"
+What's the average number of three-point attempts per game?,aggregation,0.675,0.875,0.19999999999999996,False,False,"SELECT ROUND(AVG(fg3a_home + fg3a_away), 2) as avg_3pa FROM game","SELECT ROUND(AVG(fg3a_home + fg3a_away), 2) as avg_3pt_attempts_per_game FROM game","SELECT AVG(three_point_attempts) AS average_three_point_attempts_per_game
+FROM games;"
+Which team has the most games with 50+ rebounds?,ranking,0.025763888888888888,0.4773429951690821,0.4515791062801932,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.reb_home >= 50) OR (g.team_id_away = t.id AND g.reb_away >= 50) THEN 1 ELSE 0 END) DESC LIMIT 1","SELECT t.full_name, COUNT(*) as high_rebound_games FROM game g JOIN team t ON g.team_id_home = t.id WHERE g.reb_home >= 50 GROUP BY t.id, t.full_name UNION ALL SELECT t.full_name, COUNT(*) as high_rebound_games FROM game g JOIN team t ON g.team_id_away = t.id WHERE g.reb_away >= 50 GROUP BY t.id, t.full_name ORDER BY high_rebound_games DESC LIMIT 1","SELECT 
+    team_name,
+    COUNT(*) AS games_with_50plus_rebounds
+FROM 
+    game_stats
+WHERE 
+    rebounds >= 50
+GROUP BY 
+    team_name
+ORDER BY 
+    games_with_50plus_rebounds DESC
+LIMIT 1;"
+How many players were drafted in the second round in 2017?,counting,0.42142857142857143,0.7428571428571428,0.32142857142857134,False,False,SELECT COUNT(*) FROM draft_history WHERE season = '2017' AND round_number = 2,SELECT COUNT(*) as second_round_picks FROM draft_history WHERE season = '2017' AND round_number = 2 LIMIT 1,"SELECT COUNT(*) AS second_round_picks_2017
+FROM players
+WHERE draft_round = 2 
+AND draft_year = 2017;"
+Which team has the highest field goal percentage in home games?,ranking,0.03344444444444444,0.827888888888889,0.7944444444444445,False,False,"SELECT t.full_name FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name HAVING COUNT(*) >= 20 ORDER BY CAST(SUM(g.fgm_home) AS FLOAT) / SUM(g.fga_home) * 100 DESC LIMIT 1","SELECT t.full_name, ROUND(AVG(g.fg_pct_home) * 100, 2) AS avg_fg_pct_home FROM game g JOIN team t ON g.team_id_home = t.id GROUP BY t.id, t.full_name ORDER BY avg_fg_pct_home DESC LIMIT 1","SELECT 
+    team_name,
+    SUM(field_goals_made) * 100.0 / NULLIF(SUM(field_goals_attempted), 0) AS field_goal_percentage
+FROM 
+    games
+WHERE 
+    is_home_game = TRUE
+GROUP BY 
+    team_name
+ORDER BY 
+    field_goal_percentage DESC
+LIMIT 1;"
+What's the average number of personal fouls in playoff games?,aggregation,0.5083333333333333,0.875,0.3666666666666667,False,False,"SELECT ROUND(AVG(pf_home + pf_away), 2) as avg_fouls FROM game WHERE season_type = 'Playoffs'","SELECT ROUND(AVG(pf_home + pf_away), 2) AS avg_personal_fouls FROM game WHERE season_type = 'Playoffs'","SELECT AVG(personal_fouls) AS average_personal_fouls
+FROM games
+WHERE is_playoff = TRUE;"
+Which team has the most games with 30+ assists?,ranking,0.04763888888888888,0.4773429951690821,0.4297041062801932,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.ast_home >= 30) OR (g.team_id_away = t.id AND g.ast_away >= 30) THEN 1 ELSE 0 END) DESC LIMIT 1","SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_home = t.id WHERE g.ast_home >= 30 GROUP BY t.id, t.full_name UNION ALL SELECT t.full_name, COUNT(*) as high_assist_games FROM game g JOIN team t ON g.team_id_away = t.id WHERE g.ast_away >= 30 GROUP BY t.id, t.full_name ORDER BY high_assist_games DESC LIMIT 1","SELECT team_name, COUNT(*) AS games_with_30plus_assists
+FROM team_games
+WHERE assists >= 30
+GROUP BY team_name
+ORDER BY games_with_30plus_assists DESC
+LIMIT 1;"
+What's the most common player weight?,detail,0.30166666666666664,0.6991666666666666,0.39749999999999996,False,False,SELECT weight FROM common_player_info WHERE weight != '' GROUP BY weight ORDER BY COUNT(*) DESC LIMIT 1,"SELECT weight, COUNT(*) as count FROM common_player_info WHERE weight IS NOT NULL GROUP BY weight ORDER BY count DESC LIMIT 1","SELECT weight, COUNT(*) AS frequency
+FROM players
+GROUP BY weight
+ORDER BY frequency DESC
+LIMIT 1;"
+How many games started before 7 PM local time?,counting,0.49999999999999994,0.525,0.025000000000000078,False,False,"SELECT COUNT(*) FROM game_info WHERE CAST(SUBSTR(game_time, 1, 2) AS INTEGER) < 19","SELECT COUNT(*) as early_games FROM game_info WHERE SUBSTR(game_time, 1, 5) < '19:00' AND game_time NOT LIKE '%.%'","SELECT COUNT(*) 
+FROM games
+WHERE TIME(start_time) < '19:00:00'"
+Which team has the highest percentage of games with 10+ blocks?,ranking,0.29602272727272727,0.3270941558441558,0.031071428571428528,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name HAVING COUNT(*) >= 50 ORDER BY CAST(SUM(CASE WHEN (g.team_id_home = t.id AND g.blk_home >= 10) OR (g.team_id_away = t.id AND g.blk_away >= 10) THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100 DESC LIMIT 1","WITH team_block_stats AS (
+  SELECT 
+    t.id, 
+    t.full_name,
+    COUNT(*) AS total_games,
+    SUM(CASE WHEN g.blk_home >= 10 AND g.team_id_home = t.id THEN 1 
+             WHEN g.blk_away >= 10 AND g.team_id_away = t.id THEN 1
+             ELSE 0 END) AS games_with_10plus_blocks
+  FROM team t
+  LEFT JOIN game g ON t.id = g.team_id_home OR t.id = g.team_id_away
+  GROUP BY t.id, t.full_name
+)
+SELECT 
+  full_name AS team_name,
+  ROUND(CAST(games_with_10plus_blocks AS FLOAT) / total_games * 100, 2) AS block_percentage,
+  games_with_10plus_blocks,
+  total_games
+FROM team_block_stats
+WHERE total_games > 0
+ORDER BY block_percentage DESC
+LIMIT 1","SELECT 
+    team_name,
+    (COUNT(CASE WHEN blocks >= 10 THEN 1 END) * 100.0 / COUNT(*)) AS percentage_games_with_10plus_blocks
+FROM 
+    team_games
+GROUP BY 
+    team_name
+ORDER BY 
+    percentage_games_with_10plus_blocks DESC
+LIMIT 1;"
+What's the average number of steals per game?,aggregation,0.675,0.875,0.19999999999999996,False,False,"SELECT ROUND(AVG(stl_home + stl_away), 2) as avg_steals FROM game","SELECT ROUND(AVG(stl_home + stl_away), 2) as avg_steals_per_game FROM game","SELECT AVG(steals_per_game) 
+FROM games;"
+Which team has the most games with 120+ points scored?,ranking,0.025763888888888888,0.6991269841269842,0.6733630952380952,False,False,"SELECT t.full_name FROM game g JOIN team t ON t.id IN (g.team_id_home, g.team_id_away) GROUP BY t.id, t.full_name ORDER BY SUM(CASE WHEN (g.team_id_home = t.id AND g.pts_home >= 120) OR (g.team_id_away = t.id AND g.pts_away >= 120) THEN 1 ELSE 0 END) DESC LIMIT 1","SELECT t.full_name, COUNT(*) as high_scoring_games 
+FROM game g 
+JOIN team t ON g.team_id_home = t.id AND g.pts_home >= 120 OR g.team_id_away = t.id AND g.pts_away >= 120 
+GROUP BY t.id, t.full_name 
+ORDER BY high_scoring_games DESC 
+LIMIT 1","SELECT 
+    team_name,
+    COUNT(*) AS games_with_120_plus
+FROM 
+    games
+WHERE 
+    points_scored >= 120
+GROUP BY 
+    team_name
+ORDER BY 
+    games_with_120_plus DESC
+LIMIT 1;"
+What percentage of games are decided by 5 points or less?,aggregation,0.675,1.0,0.32499999999999996,False,True,"SELECT ROUND(CAST(SUM(CASE WHEN ABS(pts_home - pts_away) <= 5 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as close_game_pct FROM game","SELECT ROUND(CAST(SUM(CASE WHEN ABS(pts_home - pts_away) <= 5 THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100, 2) as close_game_pct FROM game","SELECT 
+    (COUNT(CASE WHEN ABS(home_score - away_score) <= 5 THEN 1 END) * 100.0 / COUNT(*)) AS percentage_of_close_games
+FROM games;"
